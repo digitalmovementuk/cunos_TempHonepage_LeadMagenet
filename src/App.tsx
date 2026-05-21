@@ -1,7 +1,8 @@
-import { lazy, Suspense, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
+import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
 
 const SeoAnalyser = lazy(() => import('./seo/SeoAnalyser'))
+const SeniorFinanceSupportPage = lazy(() => import('./services/SeniorFinanceSupport'))
 
 import {
   ArrowLeft,
@@ -16,16 +17,14 @@ import {
   Mail,
   MapPin,
   Menu,
-  Pause,
   Phone,
-  Play,
   Sparkles,
   TrendingUp,
   X,
   type LucideIcon,
 } from 'lucide-react'
 
-const CONTACT = {
+export const CONTACT = {
   email: 'office@cunos.co.uk',
   phoneDisplay: '+44 7520 654 301',
   phoneHref: 'tel:+447520654301',
@@ -36,7 +35,7 @@ const CONTACT = {
   formEndpoint: 'https://formsubmit.co/ajax/enting@cunos.co.uk',
 }
 
-function WhatsAppIcon({ size = 16, className }: { size?: number; className?: string }) {
+export function WhatsAppIcon({ size = 16, className }: { size?: number; className?: string }) {
   return (
     <svg
       width={size}
@@ -66,8 +65,26 @@ export default function App() {
     )
   }
 
+  if (
+    typeof window !== 'undefined' &&
+    window.location.pathname.replace(/\/$/, '') === '/services/senior-finance-support'
+  ) {
+    return (
+      <Suspense
+        fallback={
+          <main className="grid min-h-screen w-full place-items-center bg-black text-ink/40">
+            <Loader2 size={20} className="animate-spin" />
+          </main>
+        }
+      >
+        <SeniorFinanceSupportPage />
+      </Suspense>
+    )
+  }
+
   return (
-    <main className="relative min-h-screen w-full overflow-x-hidden bg-black text-ink">
+    <main className="relative min-h-screen w-full overflow-x-clip bg-black text-ink">
+      <ScrollProgress />
       <Nav />
       <Hero />
       <ComingSoon />
@@ -78,9 +95,21 @@ export default function App() {
   )
 }
 
+export function ScrollProgress() {
+  const { scrollYProgress } = useScroll()
+  const scaleX = useSpring(scrollYProgress, { stiffness: 140, damping: 30, restDelta: 0.001 })
+  return (
+    <motion.div
+      aria-hidden
+      style={{ scaleX }}
+      className="fixed left-0 right-0 top-0 z-[60] h-[3px] origin-left bg-gradient-to-r from-[#0071E3] via-[#5cb3ff] to-[#9fd0ff] shadow-[0_0_18px_rgba(92,179,255,0.55)]"
+    />
+  )
+}
+
 /* -------------------------------- NAV -------------------------------- */
 
-function Nav() {
+export function Nav() {
   const [scrolled, setScrolled] = useState(false)
   const [overLight, setOverLight] = useState(false)
   const [open, setOpen] = useState(false)
@@ -107,9 +136,9 @@ function Nav() {
   }, [open])
 
   const navLinks: Array<[string, string]> = [
-    ["What's next", '#whats-next'],
-    ['Finance audit', '#audit'],
-    ['Contact', '#contact'],
+    ['Services', '/#whats-next'],
+    ['Finance audit', '/#audit'],
+    ['Contact', '/#contact'],
   ]
 
   const headerCls = !scrolled
@@ -137,9 +166,9 @@ function Nav() {
             'clip-path 0.42s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s ease, border-color 0.3s ease',
         }}
       >
-        <div className="mx-auto flex h-[64px] w-full max-w-[1280px] items-center justify-between px-5 md:h-[88px] md:px-10">
+        <div className="mx-auto flex h-[64px] w-full max-w-[1640px] items-center justify-between px-4 sm:px-5 md:h-[88px] md:px-6 lg:px-8">
           <a
-            href="#top"
+            href="/"
             className={`font-display text-[18px] font-semibold tracking-[-0.012em] transition-colors duration-300 sm:text-[20px] md:text-[22px] ${brandCls}`}
           >
             Cunos Consulting
@@ -191,7 +220,7 @@ function Nav() {
             </a>
 
             <a
-              href="#contact"
+              href="/#contact"
               className="ml-1 hidden items-center gap-1.5 rounded-pill bg-[#0071E3] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#0077ED] sm:inline-flex md:px-5 md:py-2.5 md:text-[14px]"
             >
               Book a call <ArrowRight size={13} />
@@ -264,7 +293,7 @@ function Nav() {
               </nav>
 
               <a
-                href="#contact"
+                href="/#contact"
                 onClick={() => setOpen(false)}
                 className="mt-8 inline-flex items-center justify-center gap-2 rounded-pill bg-[#0071E3] px-6 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-[#0077ED]"
               >
@@ -291,7 +320,7 @@ function Nav() {
               <div className="mt-auto pt-10 text-[13px] leading-[1.5] text-[#6e6e73]">
                 <a
                   href="mailto:hello@cunos.consulting"
-                  className="text-[#1d1d1f] transition-colors hover:text-[#0071E3]"
+                  className="text-white/90 transition-colors hover:text-[#5cb3ff]"
                 >
                   hello@cunos.consulting
                 </a>
@@ -313,7 +342,35 @@ function Nav() {
 function Hero() {
   const reduce = useReducedMotion()
   const videoRef = useRef<HTMLVideoElement>(null)
-  const [paused, setPaused] = useState(false)
+  const heroRef = useRef<HTMLElement>(null)
+
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end end'],
+  })
+  const paragraphRef = useRef<HTMLDivElement>(null)
+  // 'start end' = top of paragraph enters viewport bottom; 'end start' = bottom leaves viewport top.
+  // This range is wider than the sticky-pin window and always produces a usable 0→1 progress.
+  const { scrollYProgress: paragraphProgress } = useScroll({
+    target: paragraphRef,
+    offset: ['start end', 'end start'],
+  })
+
+  // Video subtle parallax + zoom across whole section
+  const videoY = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [0, 80])
+  const videoScale = useTransform(scrollYProgress, [0, 1], reduce ? [1.05, 1.05] : [1.05, 1.16])
+
+  const paragraphText =
+    'A practical alternative to in-house finance support. Ensuring financial control and transparency. Without adding a full-time role to your team.'
+  const paragraphWords = paragraphText.split(' ')
+  // Indices of the phrase to highlight after the reveal completes.
+  const highlightPhrase = 'Ensuring financial control and transparency.'.split(' ')
+  const highlightStart = paragraphWords.findIndex((_, i) =>
+    paragraphWords.slice(i, i + highlightPhrase.length).join(' ') === highlightPhrase.join(' '),
+  )
+  const highlightIndices = new Set<number>(
+    Array.from({ length: highlightPhrase.length }, (_, k) => highlightStart + k),
+  )
 
   useEffect(() => {
     const v = videoRef.current
@@ -321,42 +378,41 @@ function Hero() {
     v.muted = true
     v.defaultMuted = true
     v.play().catch(() => {})
-  }, [])
-
-  const togglePlay = () => {
-    const v = videoRef.current
-    if (!v) return
-    if (v.paused) {
-      v.play().catch(() => {})
-      setPaused(false)
-    } else {
-      v.pause()
-      setPaused(true)
+    // Source clip fades to black in its last ~8% — restart early so the loop stays lit.
+    const onTime = () => {
+      if (v.duration && v.currentTime >= v.duration * 0.92) v.currentTime = 0
     }
-  }
+    v.addEventListener('timeupdate', onTime)
+    return () => v.removeEventListener('timeupdate', onTime)
+  }, [])
 
   return (
     <section
+      ref={heroRef}
       id="top"
-      className="relative isolate h-[100dvh] min-h-[100svh] w-full overflow-hidden bg-black"
+      className="relative isolate w-full bg-black"
+      style={{ height: '300svh' }}
     >
-      <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden">
+      {/* Sticky video — pinned in viewport across both slides */}
+      <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
         {!reduce && (
-          <video
+          <motion.video
             ref={videoRef}
             autoPlay
             loop
             muted
             playsInline
-            preload="metadata"
-            className="absolute inset-0 h-full w-full scale-105 object-cover"
+            preload="auto"
+            style={{ y: videoY, scale: videoScale }}
+            className="absolute inset-0 h-full w-full object-cover"
             src={`${import.meta.env.BASE_URL}media/v9-hero-background.mp4`}
           />
         )}
 
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-black/20" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-black/25" />
 
         <div
+          aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-32"
           style={{
             background:
@@ -364,80 +420,135 @@ function Hero() {
           }}
         />
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%]"
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[40%]"
           style={{
             background:
-              'linear-gradient(180deg, rgba(7,1,13,0) 0%, rgba(7,1,13,0.55) 65%, rgba(7,1,13,0.92) 100%)',
+              'linear-gradient(180deg, rgba(7,1,13,0) 0%, rgba(7,1,13,0.35) 70%, rgba(7,1,13,0.55) 100%)',
           }}
         />
       </div>
 
-      <button
-        type="button"
-        onClick={togglePlay}
-        aria-label={paused ? 'Play hero video' : 'Pause hero video'}
-        className="absolute right-5 top-[max(22vh,180px)] z-10 grid h-9 w-9 place-items-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20 sm:right-8 sm:h-10 sm:w-10"
-      >
-        {paused ? <Play size={13} fill="white" /> : <Pause size={12} fill="white" />}
-      </button>
+      {/* Content layer — overlays both viewports above the sticky video */}
+      <div className="absolute inset-x-0 top-0 z-10 h-full">
+        {/* Slide 1 — kicker, H1, subhead, CTAs */}
+        <div className="relative flex h-[100svh] items-end">
+          <div className="mx-auto w-full max-w-[1640px] px-4 pb-7 sm:px-5 sm:pb-10 md:px-6 md:pb-12 lg:px-8 lg:pb-14">
+            <div className="flex flex-col items-center gap-5 text-center md:flex-row md:items-end md:justify-between md:gap-12 md:text-left">
+              <div className="min-w-0 flex-1">
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.25 }}
+                  className="text-[14px] font-semibold uppercase tracking-[0.05em] text-white sm:text-[19px]"
+                >
+                  Senior finance support
+                </motion.p>
 
-      <div className="absolute inset-x-0 bottom-0 z-10">
-        <div className="mx-auto w-full max-w-[1280px] px-5 pb-10 sm:px-6 sm:pb-16 md:px-10 md:pb-20 lg:pb-24">
-          <div className="flex flex-col items-center gap-6 text-center md:flex-row md:items-end md:justify-between md:gap-12 md:text-left">
-            <div className="min-w-0 flex-1">
-              <motion.p
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.25 }}
-                className="text-[13px] font-semibold uppercase tracking-[0.05em] text-white sm:text-[17px]"
-              >
-                Senior finance support
-              </motion.p>
+                <h1
+                  className="mx-auto mt-2 text-white sm:mt-3 md:mx-0"
+                  style={{
+                    fontSize: 'clamp(40px, 6.5vw, 88px)',
+                    lineHeight: '1.06',
+                    letterSpacing: '-0.025em',
+                    fontWeight: 300,
+                  }}
+                >
+                  <motion.span
+                    initial={{ opacity: 0, y: 30, filter: 'blur(12px)' }}
+                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    transition={{ duration: 0.85, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    className="block whitespace-nowrap"
+                  >
+                    Outsourced
+                  </motion.span>
+                  <motion.span
+                    initial={{ opacity: 0, y: 30, filter: 'blur(12px)' }}
+                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    transition={{ duration: 0.85, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                    className="block whitespace-nowrap font-normal text-white/95"
+                  >
+                    Finance Management
+                  </motion.span>
+                </h1>
 
-              <motion.h1
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.55 }}
+                  className="mx-auto mt-3 text-[16px] leading-[1.4] text-white/70 sm:mt-4 sm:text-[20px] sm:text-white/65 md:mx-0 md:whitespace-nowrap"
+                >
+                  Finance leadership, reporting, and cash visibility — made for founders.
+                </motion.p>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.7 }}
+                  className="mt-5 flex justify-center sm:mt-6 md:justify-start"
+                >
+                  <a
+                    href="#whats-next"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-5 py-2.5 text-[14px] font-medium text-white backdrop-blur-md transition-colors hover:bg-white/15"
+                  >
+                    Find out more
+                    <ArrowRight size={13} />
+                  </a>
+                </motion.div>
+              </div>
+
+              <motion.div
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="mx-auto mt-4 text-white sm:mt-6 md:mx-0"
-                style={{
-                  fontSize: 'clamp(40px, 6.5vw, 88px)',
-                  lineHeight: '1.06',
-                  letterSpacing: '-0.025em',
-                  fontWeight: 300,
-                }}
-              >
-                <span className="block whitespace-nowrap">Clarity for</span>
-                <span className="block whitespace-nowrap font-normal text-white/95">growing businesses.</span>
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.55 }}
-                className="mx-auto mt-4 max-w-[600px] text-[15px] leading-[1.5] text-white/70 sm:mt-7 sm:text-[19px] sm:leading-[1.45] sm:text-white/65 md:mx-0"
+                className="flex w-full flex-col items-center gap-3 md:w-auto md:flex-shrink-0 md:items-end md:gap-3"
               >
-                Finance leadership, reporting, and cash visibility — made for founders.
-              </motion.p>
+                <a
+                  href="#audit"
+                  className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#0071E3] px-5 py-3 text-[14px] font-medium text-white transition-colors hover:bg-[#0077ED] sm:w-auto sm:py-2"
+                >
+                  Start the assessment
+                  <ArrowRight size={13} />
+                </a>
+                <p className="text-center text-[13px] font-medium leading-snug text-white/70 sm:whitespace-nowrap sm:text-[15px] md:text-right">
+                  Free 30-second self-assessment
+                </p>
+              </motion.div>
             </div>
+          </div>
+        </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.55 }}
-              className="flex w-full flex-col items-center gap-3 md:w-auto md:flex-row md:flex-shrink-0 md:items-center md:gap-4"
+        {/* Slide 2 — practical alternative paragraph, pinned to viewport center while scroll drives the reveal */}
+        <div
+          ref={paragraphRef}
+          className="relative h-[200svh]"
+        >
+          <div className="sticky top-0 flex h-[100svh] items-center justify-center">
+          <div className="mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+            <h2
+              className="mx-auto max-w-[1500px] text-balance text-center text-white"
+              style={{
+                fontSize: 'clamp(48px, 7vw, 132px)',
+                lineHeight: '1.02',
+                letterSpacing: '-0.04em',
+                fontWeight: 700,
+              }}
             >
-              <p className="text-center text-[13px] font-medium leading-snug text-white/70 sm:whitespace-nowrap sm:text-[17px] md:text-right">
-                Free 30-second self-assessment{' '}
-                <span className="text-white/45">· No email required</span>
-              </p>
-              <a
-                href="#audit"
-                className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[#0071E3] px-5 py-3 text-[14px] font-medium text-white transition-colors hover:bg-[#0077ED] sm:w-auto sm:py-2"
-              >
-                Start the assessment
-                <ArrowRight size={13} />
-              </a>
-            </motion.div>
+              {paragraphWords.map((word, i) => (
+                <ScrollWord
+                  key={`${word}-${i}`}
+                  word={word}
+                  index={i}
+                  total={paragraphWords.length}
+                  progress={paragraphProgress}
+                  reduce={!!reduce}
+                  highlight={highlightIndices.has(i)}
+                  highlightOrder={highlightIndices.has(i) ? i - highlightStart : -1}
+                  highlightCount={highlightPhrase.length}
+                />
+              ))}
+            </h2>
+          </div>
           </div>
         </div>
       </div>
@@ -445,52 +556,187 @@ function Hero() {
   )
 }
 
-/* ----------------------------- COMING SOON ---------------------------- */
+function ScrollWord({
+  word,
+  index,
+  total,
+  progress,
+  reduce,
+  highlight = false,
+  highlightOrder = -1,
+  highlightCount = 0,
+}: {
+  word: string
+  index: number
+  total: number
+  progress: ReturnType<typeof useScroll>['scrollYProgress']
+  reduce: boolean
+  highlight?: boolean
+  highlightOrder?: number
+  highlightCount?: number
+}) {
+  // Per-word reveal: each word fades from transparent → full white as the user scrolls.
+  // useTransform clamps outside its range, so once a word reaches opacity 1 it stays there
+  // permanently — no fade-out, even when scrolling further past the section.
+  // Paragraph pin window is ~0.333 → 0.667 of paragraphProgress. Reveal occupies the first
+  // ~60% of the pin so the highlighter has room to play out while text is still visible.
+  const REVEAL_WIN_START = 0.34
+  const REVEAL_WIN_END = 0.55
+  const revealSpan = REVEAL_WIN_END - REVEAL_WIN_START
+  const step = revealSpan / total
+  const wStart = REVEAL_WIN_START + index * step
+  const wEnd = wStart + step * 1.25
+  // Explicit clamp guarantees no fade-out once a word reaches full white,
+  // regardless of how framer-motion's useTransform clamp default behaves across versions.
+  const opacity = useTransform(progress, (v) => {
+    if (reduce) return 1
+    const t = (v - wStart) / (wEnd - wStart)
+    return Math.max(0, Math.min(1, t))
+  })
+  const blur = useTransform(progress, (v) => {
+    if (reduce) return 'blur(0px)'
+    const t = Math.max(0, Math.min(1, (v - wStart) / (wEnd - wStart)))
+    return `blur(${(1 - t) * 5}px)`
+  })
 
-const featureCards = [
+  // Highlighter sweep — strictly sequential, one word at a time, tied directly to scroll.
+  // Each word's slot ends exactly where the next begins, so two strokes are never in motion together.
+  // Sits inside the pinned window (after reveal completes, before paragraph leaves viewport).
+  const HL_START = 0.56
+  const HL_END = 0.66
+  const perWord = highlightCount > 0 ? (HL_END - HL_START) / highlightCount : 0
+  const hlA = highlight ? HL_START + highlightOrder * perWord : 0
+  const hlB = highlight ? hlA + perWord : 1
+  // Non-linear keyframes give the stroke a hand-drawn feel — quick start, slow middle, snap to end —
+  // without using a spring (which would decay past the slot and overlap the next word).
+  const markerScale = useTransform(
+    progress,
+    [hlA, hlA + (hlB - hlA) * 0.3, hlA + (hlB - hlA) * 0.62, hlA + (hlB - hlA) * 0.88, hlB],
+    reduce || !highlight ? [0, 0, 0, 0, 0] : [0, 0.42, 0.78, 0.96, 1],
+  )
+  // Inverse-color: flip the swept word's text from white → near-black just after the marker
+  // has covered the bulk of it. Snap-ish transition so the eye reads it as a stamp, not a fade.
+  const textColor = useTransform(
+    progress,
+    [hlA + (hlB - hlA) * 0.45, hlA + (hlB - hlA) * 0.7],
+    reduce || !highlight ? ['#ffffff', '#ffffff'] : ['#ffffff', '#000000'],
+  )
+
+  // Per-word jitter so adjacent strokes don't look mechanically identical.
+  const tilt = highlight
+    ? [-0.9, 0.6, -0.4, 0.8, -0.7, 0.5, -0.3][highlightOrder % 7] ?? -0.5
+    : 0
+  // Vertical bleed: extend the marker slightly above the cap-height and below the baseline
+  // so every glyph (caps, descenders, dots above 'i') is fully wrapped — no stub of a letter
+  // poking out above or below the stroke.
+  const yTop = highlight
+    ? [-0.08, -0.05, -0.09, -0.06, -0.08, -0.05, -0.07][highlightOrder % 7] ?? -0.07
+    : -0.07
+  const yBottom = highlight
+    ? [-0.06, -0.04, -0.07, -0.05, -0.06, -0.04, -0.05][highlightOrder % 7] ?? -0.05
+    : -0.05
+  const radiusOptions = [
+    '3px 8px 5px 6px',
+    '4px 6px 7px 4px',
+    '5px 7px 4px 8px',
+    '3px 9px 6px 5px',
+    '4px 7px 5px 7px',
+  ]
+  const radius = highlight ? radiusOptions[highlightOrder % radiusOptions.length] : '4px'
+
+  return (
+    <>
+      <motion.span
+        style={{ opacity, filter: blur }}
+        className="relative inline-block will-change-[opacity,filter]"
+      >
+        {highlight && !reduce && (
+          <motion.span
+            aria-hidden
+            style={{
+              scaleX: markerScale,
+              transformOrigin: 'left center',
+              rotate: `${tilt}deg`,
+              top: `${yTop}em`,
+              bottom: `${yBottom}em`,
+              left: '-0.12em',
+              right: '-0.12em',
+              borderRadius: radius,
+              // Solid opaque white — maximum contrast against the dark text being inverted.
+              // Subtle near-white shimmer only (no transparency dips) so coverage stays uniform.
+              background:
+                'linear-gradient(102deg, #ffffff 0%, #f6f9ff 30%, #ffffff 55%, #f7faff 78%, #ffffff 100%)',
+              boxShadow:
+                'inset 0 -0.05em 0 rgba(10,16,32,0.12), 0 0.03em 0.18em rgba(255,255,255,0.45)',
+            }}
+            className="pointer-events-none absolute -z-10"
+          />
+        )}
+        <motion.span style={{ color: textColor }} className="relative">
+          {word}
+        </motion.span>
+      </motion.span>
+      {index < total - 1 ? ' ' : ''}
+    </>
+  )
+}
+
+/* ---------------------------- REVEAL HEADING -------------------------- */
+
+export function RevealHeading({
+  parts,
+  className = '',
+  style,
+  baseDelay = 0.1,
+  gap = 0.15,
+}: {
+  parts: Array<{ text: string; mute?: boolean }>
+  className?: string
+  style?: CSSProperties
+  baseDelay?: number
+  gap?: number
+}) {
+  return (
+    <span className={`flex flex-wrap gap-x-[0.25em] ${className}`} style={style}>
+      {parts.map((p, i) => (
+        <motion.span
+          key={`${p.text}-${i}`}
+          initial={{ opacity: 0, y: 30, filter: 'blur(12px)' }}
+          whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.85, delay: baseDelay + i * gap, ease: [0.22, 1, 0.36, 1] }}
+          className={`inline-block ${p.mute ? 'opacity-55' : ''}`}
+        >
+          {p.text}
+        </motion.span>
+      ))}
+    </span>
+  )
+}
+
+/* ------------------------------ SERVICES ------------------------------ */
+
+const services = [
   {
-    Icon: Compass,
     title: 'Senior Finance Support',
-    body: [
-      'Finance support that brings',
-      'structure, clarity, and better',
-      'control as your business grows.',
-    ],
-    status: 'Available now',
-    highlight: false,
+    body: 'Ensuring reliable finance operations and finance strategy advice.',
+    href: '/services/senior-finance-support',
+    video: 'senior-finance-support',
+    tint: 'from-[#0071E3]/45 to-[#5cb3ff]/10',
   },
   {
-    Icon: BarChart3,
-    title: 'Management Reporting',
-    body: [
-      'Monthly reporting with clear insight',
-      'into business performance, so you can',
-      'make better decisions for growth.',
-    ],
-    status: 'Available now',
-    highlight: false,
+    title: 'Cashflow Forecast',
+    body: 'Delivering cash balance clarity and forecasts so you can plan with confidence.',
+    href: '/services/cashflow-forecast',
+    video: 'cashflow-forecast',
+    tint: 'from-emerald-500/40 to-[#0071E3]/10',
   },
   {
-    Icon: TrendingUp,
-    title: 'Cashflow forecast',
-    body: [
-      'A forward view of your cash, so you',
-      'know where it’s flowing and where',
-      'pressure may appear.',
-    ],
-    status: 'Available now',
-    highlight: false,
-  },
-  {
-    Icon: Sparkles,
-    title: 'AI & Automation',
-    body: [
-      'Automation that delivers faster reports',
-      'with less manual work, supporting',
-      'your team’s focus on growth.',
-    ],
-    status: 'Coming 2026',
-    highlight: true,
+    title: 'Management Report',
+    body: 'Executive reporting delivering the foundation for sustainable business growth.',
+    href: '/services/management-report',
+    video: 'management-report',
+    tint: 'from-[#7c5cff]/45 to-[#0071E3]/10',
   },
 ] as const
 
@@ -499,78 +745,49 @@ function ComingSoon() {
 
   const container = {
     hidden: {},
-    visible: { transition: { staggerChildren: 0.12, delayChildren: 0.05 } },
+    visible: { transition: { staggerChildren: 0.14, delayChildren: 0.05 } },
   }
   const item = {
     hidden: { opacity: 0, y: 24 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease } },
   }
-  const cardItem = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.45, ease } },
-  }
 
   return (
     <section
       id="whats-next"
-      className="relative isolate overflow-hidden bg-[#fbfbfd] py-20 sm:py-24 md:py-32 lg:py-40"
+      className="relative isolate overflow-hidden bg-white py-28 sm:py-36 md:py-44 lg:py-56"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-40 mx-auto h-[520px] max-w-[1100px]"
-        style={{
-          background:
-            'radial-gradient(ellipse at 50% 0%, rgba(41,151,255,0.06), transparent 70%)',
-        }}
-      />
-
-      <div className="relative mx-auto w-full max-w-[1440px] px-5 sm:px-6 md:px-10">
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-80px' }}
           variants={container}
-          className="mx-auto max-w-[820px] text-center"
+          className="max-w-[1080px]"
         >
-          <motion.div variants={item} className="flex justify-center">
-            <span className="inline-flex items-center gap-2 rounded-pill border border-[#0071E3]/25 bg-[#eef5ff] px-3 py-1.5 shadow-[0_1px_2px_rgba(0,113,227,0.06)] sm:gap-2.5 sm:px-4">
-              <span className="relative inline-flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-              </span>
-              <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#0071E3] sm:text-[12px]">
-                Coming 2026 · New service<span className="hidden sm:inline"> launching</span>
-              </span>
-            </span>
-          </motion.div>
-
           <motion.p
             variants={item}
-            className="mt-7 text-[16px] font-normal tracking-[-0.005em] text-[#1d1d1f] sm:mt-8 sm:text-[20px]"
+            className="text-[13px] font-semibold uppercase tracking-[0.12em] text-[#6e6e73] sm:text-[15px]"
           >
-            Cunos is expanding — so you do more with less.
+            What you get
           </motion.p>
 
-          <motion.h2
-            variants={item}
-            className="mt-3 tracking-[-0.025em] text-[#1d1d1f]"
+          <h2
+            className="mt-6 text-[#1d1d1f] sm:mt-8"
             style={{
-              fontSize: 'clamp(56px, 9vw, 128px)',
-              lineHeight: '1.02',
-              fontWeight: 300,
+              fontSize: 'clamp(64px, 9vw, 160px)',
+              lineHeight: '1.0',
+              letterSpacing: '-0.04em',
+              fontWeight: 700,
             }}
           >
-            <span className="block sm:inline">AI &amp;</span>{' '}
-            <span className="block sm:inline">Automation.</span>
-          </motion.h2>
-
-          <motion.p
-            variants={item}
-            className="mx-auto mt-7 max-w-[720px] text-[16px] font-normal leading-[1.55] text-[#6e6e73] sm:mt-8 sm:text-[18px]"
-          >
-            Launching in 2026. So your finance moves faster, with less work for your team — and
-            more time to grow the business.
-          </motion.p>
+            <RevealHeading
+              parts={[
+                { text: 'Fractional' },
+                { text: 'CFO', mute: true },
+              ]}
+            />
+          </h2>
         </motion.div>
 
         <motion.ul
@@ -578,91 +795,68 @@ function ComingSoon() {
           whileInView="visible"
           viewport={{ once: true, margin: '-80px' }}
           variants={container}
-          className="mt-12 grid grid-cols-1 items-stretch gap-4 sm:mt-16 md:mt-20 md:grid-cols-2 md:gap-5 min-[1400px]:grid-cols-4"
+          className="mt-20 grid grid-cols-1 gap-x-8 gap-y-20 sm:mt-24 md:mt-32 md:grid-cols-3 md:gap-x-8"
         >
-          {featureCards.map(({ Icon, title, body, status, highlight }) => (
+          {services.map((s, i) => (
             <motion.li
-              key={title}
-              variants={cardItem}
-              className={`group relative flex min-h-[232px] flex-col items-center overflow-hidden rounded-3xl p-7 text-center transition-all duration-300 sm:min-h-[236px] sm:items-start sm:text-left ${
-                highlight
-                  ? 'border border-[#1d1d1f] bg-[#1d1d1f] hover:border-[#2997ff]/50 hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.45)]'
-                  : 'border border-black/[0.08] bg-white hover:border-black/20 hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.18)]'
-              }`}
+              key={s.title}
+              variants={item}
+              className="flex h-full flex-col"
             >
-              <span
-                className={`absolute right-5 top-5 inline-flex items-center gap-1.5 rounded-pill border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] z-10 ${
-                  highlight
-                    ? 'border-[#2997ff]/40 bg-[#2997ff]/15 text-[#5cb3ff]'
-                    : 'border-emerald-500/20 bg-emerald-50 text-emerald-700'
-                }`}
-              >
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    highlight ? 'animate-pulse bg-[#2997ff]' : 'bg-emerald-500'
-                  }`}
+              <div className="group/video relative aspect-[16/10] w-full overflow-hidden rounded-[24px] border border-black/[0.06] bg-[#0c0716] shadow-[0_24px_60px_-32px_rgba(15,15,30,0.35)]">
+                <div
+                  aria-hidden
+                  className={`absolute inset-0 bg-gradient-to-br ${s.tint}`}
                 />
-                {status}
-              </span>
-
-              <div
-                aria-hidden
-                className={`pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full blur-3xl transition-opacity duration-500 ${
-                  highlight
-                    ? 'bg-gradient-to-br from-[#2997ff]/35 to-transparent opacity-70'
-                    : 'bg-gradient-to-br from-[#2997ff]/12 to-transparent opacity-0 group-hover:opacity-100'
-                }`}
-              />
-
-              <div
-                className={`relative grid h-11 w-11 place-items-center rounded-xl ${
-                  highlight
-                    ? 'border border-[#2997ff]/25 bg-[#2997ff]/10'
-                    : 'border border-black/[0.08] bg-black/[0.03]'
-                }`}
-              >
-                <Icon
-                  size={20}
-                  strokeWidth={1.6}
-                  className={highlight ? 'text-[#2997ff]' : 'text-[#1d1d1f]'}
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="absolute inset-0 h-full w-full scale-105 object-cover opacity-95 transition-transform duration-700 group-hover/video:scale-110"
+                  src={`${import.meta.env.BASE_URL}media/services/${s.video}.mp4`}
                 />
+                <div
+                  aria-hidden
+                  className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent"
+                />
+                <span className="absolute left-5 top-5 inline-block rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[12px] font-medium tabular-nums tracking-[0.05em] text-white backdrop-blur-md">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
               </div>
 
               <h3
-                className={`relative mt-6 min-h-[27px] w-full ${
-                  highlight ? 'text-white' : 'text-[#1d1d1f]'
-                }`}
-                style={{ fontSize: '21px', letterSpacing: '-0.012em', lineHeight: '1.25', fontWeight: 700 }}
+                className="mt-7 text-[#1d1d1f]"
+                style={{
+                  fontSize: 'clamp(28px, 2.9vw, 40px)',
+                  lineHeight: '1.1',
+                  letterSpacing: '-0.035em',
+                  fontWeight: 700,
+                  minHeight: '2.2em',
+                }}
               >
-                {title}
+                {s.title}
               </h3>
               <p
-                className={`relative mt-3 min-h-[68px] w-full text-[13px] font-normal leading-[1.55] sm:min-h-[72px] ${
-                  highlight ? 'text-white/70' : 'text-[#6e6e73]'
-                }`}
+                className="mt-5 text-[18px] leading-[1.5] text-[#6e6e73] sm:text-[20px]"
+                style={{ minHeight: '4.5em' }}
               >
-                {Array.isArray(body)
-                  ? body.map((line) => (
-                      <span key={line} className="block whitespace-nowrap">
-                        {line}
-                      </span>
-                    ))
-                  : body}
+                {s.body}
               </p>
+              <a
+                href={s.href}
+                className="group/link mt-auto inline-flex items-center gap-1.5 pt-7 text-[15px] font-medium text-[#0071E3] transition-colors hover:text-[#0077ED]"
+              >
+                See more
+                <ArrowRight
+                  size={14}
+                  className="transition-transform duration-300 group-hover/link:translate-x-0.5"
+                />
+              </a>
             </motion.li>
           ))}
         </motion.ul>
-
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.7, ease, delay: 0.1 }}
-          className="mx-auto mt-12 max-w-[720px] rounded-pill border border-black/[0.07] bg-white px-5 py-3 text-center text-[13px] leading-[1.5] text-[#6e6e73] shadow-[0_8px_28px_-22px_rgba(15,15,30,0.22)] sm:mt-14 md:mt-16"
-        >
-          Senior Finance Support, Management Reporting, and Cashflow forecast are available today.
-          AI &amp; Automation launches in 2026.
-        </motion.p>
       </div>
     </section>
   )
@@ -677,12 +871,6 @@ const PILLAR_META: Record<Pillar, { label: string; weight: number }> = {
   reporting: { label: 'Reporting rhythm', weight: 0.3 },
   planning: { label: 'Forward planning', weight: 0.3 },
 }
-
-const SCORECARD_PILLAR_DETAILS: Array<{ key: Pillar; body: string }> = [
-  { key: 'cash', body: 'Spot cash pressure earlier' },
-  { key: 'reporting', body: 'Read performance faster' },
-  { key: 'planning', body: 'Plan with more confidence' },
-]
 
 const SCORECARD_QUESTIONS: Array<{
   pillar: Pillar
@@ -952,7 +1140,7 @@ function Scorecard() {
   return (
     <section
       id="audit"
-      className="relative isolate scroll-mt-20 overflow-hidden bg-[#f2f7fb] py-10 sm:py-12 md:py-16"
+      className="relative isolate flex min-h-[100svh] scroll-mt-20 items-center overflow-hidden bg-[#f2f7fb] py-10 sm:py-12 md:py-14"
     >
       <div
         aria-hidden
@@ -963,13 +1151,13 @@ function Scorecard() {
         }}
       />
 
-      <div className="relative mx-auto w-full max-w-[1280px] px-5 sm:px-6 md:px-10">
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="relative overflow-hidden rounded-[24px] border border-white/70 bg-[#0b1220] p-4 shadow-[0_28px_80px_-38px_rgba(8,24,52,0.62),0_1px_0_rgba(255,255,255,0.7)_inset] sm:rounded-[32px] md:p-5"
+          className="relative overflow-hidden rounded-[28px] border border-white/70 bg-[#0b1220] p-5 shadow-[0_40px_100px_-30px_rgba(8,24,52,0.55),0_1px_0_rgba(255,255,255,0.7)_inset] sm:rounded-[32px] md:p-7"
         >
           <div
             aria-hidden
@@ -986,47 +1174,34 @@ function Scorecard() {
               className="flex flex-col items-center justify-between rounded-[22px] border border-white/10 bg-white/[0.06] p-5 text-center text-white shadow-[0_1px_0_rgba(255,255,255,0.12)_inset] sm:p-6 lg:items-start lg:p-7 lg:text-left lg:min-h-[440px]"
             >
               <div className="w-full">
-                <span className="inline-flex items-center gap-2 rounded-pill border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#9fd0ff]">
-                  <Sparkles size={13} strokeWidth={2} />
+                <span className="inline-flex items-center gap-2 rounded-pill border border-white/15 bg-white/10 px-3.5 py-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-[#9fd0ff]">
+                  <Sparkles size={14} strokeWidth={2} />
                   Finance audit
                 </span>
 
                 <h2
-                  className="mx-auto mt-4 max-w-[420px] tracking-[-0.025em] text-white lg:mx-0"
+                  className="mx-auto mt-5 max-w-[760px] text-white lg:mx-0"
                   style={{
-                    fontSize: 'clamp(28px, 2.8vw, 40px)',
-                    lineHeight: '1.04',
-                    fontWeight: 300,
+                    fontSize: 'clamp(64px, 9vw, 160px)',
+                    lineHeight: '1.0',
+                    letterSpacing: '-0.04em',
+                    fontWeight: 700,
                   }}
                 >
-                  30-second finance check.
+                  <RevealHeading
+                    parts={[{ text: "What's your" }, { text: 'situation?', mute: true }]}
+                  />
                 </h2>
 
-                <p className="mx-auto mt-3 max-w-[400px] text-[15px] leading-[1.5] text-white/72 lg:mx-0">
-                  See which area needs attention first: cash, reporting, or planning.
+                <p className="mx-auto mt-5 max-w-[460px] text-[17px] leading-[1.5] text-white/72 sm:text-[19px] lg:mx-0">
+                  Pinpoint the weak link across cash, reporting, and planning.
                 </p>
               </div>
 
-              <div className="mt-5 flex flex-wrap justify-center gap-2 lg:justify-start">
-                {SCORECARD_PILLAR_DETAILS.map(({ key }) => (
-                  <span
-                    key={key}
-                    className="inline-flex items-center gap-2 rounded-pill border border-white/10 bg-white/[0.07] px-3 py-2 text-[12px] font-semibold text-white/82"
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#5cb3ff]" />
-                    {PILLAR_META[key].label}
-                  </span>
-                ))}
-              </div>
-
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-[12px] font-medium text-white/62 lg:justify-start">
-                <span className="inline-flex items-center gap-1.5 rounded-pill bg-white/10 px-3 py-1.5">
-                  <Clock size={13} />
+              <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5 text-[14px] font-medium text-white/65 lg:justify-start">
+                <span className="inline-flex items-center gap-1.5 rounded-pill bg-white/10 px-3.5 py-2">
+                  <Clock size={14} />
                   30 seconds
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-pill bg-white/10 px-3 py-1.5">
-                  <CheckCircle2 size={13} />
-                  No email to start
                 </span>
               </div>
             </div>
@@ -1114,51 +1289,51 @@ function ScorecardIntro({ onStart }: { onStart: () => void }) {
             <div className="grid h-12 w-12 place-items-center rounded-2xl border border-[#0071E3]/20 bg-[#eef5ff]">
               <Sparkles size={20} strokeWidth={1.6} className="text-[#0071E3]" />
             </div>
-            <span className="rounded-pill border border-black/[0.08] bg-[#fbfbfd] px-3 py-1.5 text-[12px] font-semibold text-[#6e6e73]">
+            <span className="rounded-pill border border-black/[0.08] bg-[#fbfbfd] px-3.5 py-2 text-[13px] font-semibold text-[#6e6e73]">
               01 / Start
             </span>
           </div>
 
           <h3
-            className="mt-5 max-w-[520px] tracking-[-0.02em] text-[#1d1d1f]"
-            style={{ fontSize: 'clamp(24px, 2.5vw, 32px)', lineHeight: '1.12', fontWeight: 400 }}
+            className="mt-5 max-w-[560px] tracking-[-0.025em] text-[#1d1d1f]"
+            style={{ fontSize: 'clamp(28px, 3vw, 40px)', lineHeight: '1.1', fontWeight: 700 }}
           >
             Start with your current finance rhythm.
           </h3>
-          <p className="mt-3 max-w-[520px] text-[14px] leading-[1.55] text-[#6e6e73] sm:text-[15px]">
+          <p className="mt-4 max-w-[560px] text-[16px] leading-[1.55] text-[#6e6e73] sm:text-[18px]">
             7 questions across three pillars. We score your answers in real time and show you where
             to focus first.
           </p>
 
-          <ul className="mt-5 grid w-full grid-cols-1 gap-2.5 sm:mt-6 sm:grid-cols-3">
+          <ul className="mt-6 grid w-full grid-cols-1 gap-3 sm:mt-7 sm:grid-cols-3">
             {previewPillars.map(({ Icon, key, hint }) => (
               <li
                 key={key}
-                className="flex items-center gap-3 rounded-2xl border border-black/[0.06] bg-[#fbfbfd] p-3 text-left sm:flex-col sm:items-start sm:gap-3 sm:p-4"
+                className="flex items-center gap-3 rounded-2xl border border-black/[0.06] bg-[#fbfbfd] p-4 text-left sm:flex-col sm:items-start sm:gap-3 sm:p-5"
               >
-                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[#0071E3]/15 bg-white text-[#0071E3]">
-                  <Icon size={16} strokeWidth={1.8} />
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[#0071E3]/15 bg-white text-[#0071E3]">
+                  <Icon size={18} strokeWidth={1.8} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[13px] font-semibold leading-tight text-[#1d1d1f]">
+                  <p className="text-[15px] font-semibold leading-tight text-[#1d1d1f]">
                     {PILLAR_META[key].label}
                   </p>
-                  <p className="mt-1 text-[12px] leading-[1.45] text-[#6e6e73]">{hint}</p>
+                  <p className="mt-1 text-[14px] leading-[1.45] text-[#6e6e73]">{hint}</p>
                 </div>
               </li>
             ))}
           </ul>
 
-          <div className="mt-auto flex w-full flex-col items-center gap-3 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-auto flex w-full flex-col items-center gap-3 pt-7 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               onClick={onStart}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-pill bg-[#0071E3] px-6 py-3 text-[14px] font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0077ED] hover:shadow-[0_14px_34px_-10px_rgba(0,113,227,0.55)] sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-pill bg-[#0071E3] px-7 py-4 text-[16px] font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0077ED] hover:shadow-[0_14px_34px_-10px_rgba(0,113,227,0.55)] sm:w-auto"
             >
               Start the assessment
-              <ArrowRight size={16} />
+              <ArrowRight size={17} />
             </button>
-            <p className="text-[12px] text-[#86868b] sm:text-right">
+            <p className="text-[14px] text-[#86868b] sm:text-right">
               30 seconds · No email needed to see your score.
             </p>
           </div>
@@ -1189,10 +1364,10 @@ function ScorecardQuestion({
     <motion.div {...SCORECARD_STEP_ENTER} className="h-full w-full">
       <ScorecardCardChrome>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#0071E3]">
+          <p className="text-[13px] font-semibold uppercase tracking-[0.12em] text-[#0071E3]">
             {PILLAR_META[question.pillar].label}
           </p>
-          <span className="rounded-pill border border-black/[0.08] bg-[#fbfbfd] px-3 py-1.5 text-[12px] font-semibold text-[#6e6e73]">
+          <span className="rounded-pill border border-black/[0.08] bg-[#fbfbfd] px-3.5 py-2 text-[13px] font-semibold text-[#6e6e73]">
             {progress}% complete
           </span>
         </div>
@@ -1207,18 +1382,18 @@ function ScorecardQuestion({
             />
           ))}
         </div>
-        <p className="mt-4 text-[12px] font-semibold uppercase tracking-[0.1em] text-[#86868b]">
+        <p className="mt-5 text-[13px] font-semibold uppercase tracking-[0.1em] text-[#86868b]">
           Question {index + 1} of {total}
         </p>
 
         <h3
-          className="mt-2 max-w-[620px] tracking-[-0.012em] text-[#1d1d1f]"
-          style={{ fontSize: 'clamp(22px, 2.4vw, 29px)', lineHeight: '1.2', fontWeight: 500 }}
+          className="mt-3 max-w-[680px] tracking-[-0.025em] text-[#1d1d1f]"
+          style={{ fontSize: 'clamp(26px, 2.8vw, 36px)', lineHeight: '1.15', fontWeight: 700 }}
         >
           {question.question}
         </h3>
 
-        <ul className="mt-6 space-y-2.5">
+        <ul className="mt-7 space-y-3">
           {question.options.map((opt, optIndex) => {
             const isSelected = selected === opt.score
             return (
@@ -1227,7 +1402,7 @@ function ScorecardQuestion({
                   type="button"
                   onClick={() => onSelect(opt.score)}
                   aria-pressed={isSelected}
-                  className={`group flex min-h-[56px] w-full items-center justify-between gap-4 rounded-2xl border px-4 py-3.5 text-left text-[15px] font-medium transition-all duration-200 ${
+                  className={`group flex min-h-[60px] w-full items-center justify-between gap-4 rounded-2xl border px-5 py-4 text-left text-[17px] font-medium transition-all duration-200 ${
                     isSelected
                       ? 'border-[#0071E3] bg-[#eef5ff] text-[#1d1d1f] shadow-[0_4px_18px_-6px_rgba(0,113,227,0.35)]'
                       : 'border-black/[0.1] bg-white text-[#1d1d1f] hover:-translate-y-0.5 hover:border-black/20 hover:shadow-[0_8px_22px_-12px_rgba(15,15,30,0.18)]'
@@ -1235,7 +1410,7 @@ function ScorecardQuestion({
                 >
                   <span className="flex min-w-0 items-center gap-3">
                     <span
-                      className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-[12px] font-semibold transition-colors ${
+                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-[13px] font-semibold transition-colors ${
                         isSelected
                           ? 'bg-[#0071E3] text-white'
                           : 'bg-black/[0.04] text-[#6e6e73] group-hover:bg-[#eef5ff] group-hover:text-[#0071E3]'
@@ -1263,9 +1438,9 @@ function ScorecardQuestion({
         <button
           type="button"
           onClick={onBack}
-          className="mt-5 inline-flex items-center gap-1.5 text-[13px] font-medium text-[#6e6e73] transition-colors hover:text-[#1d1d1f]"
+          className="mt-6 inline-flex items-center gap-1.5 text-[14px] font-medium text-[#6e6e73] transition-colors hover:text-[#1d1d1f]"
         >
-          <ArrowLeft size={14} />
+          <ArrowLeft size={15} />
           {index === 0 ? 'Back to intro' : 'Previous question'}
         </button>
       </ScorecardCardChrome>
@@ -1618,6 +1793,14 @@ function Contact() {
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const sectionRef = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  })
+  const orb1Y = useTransform(scrollYProgress, [0, 1], [-120, 120])
+  const orb2Y = useTransform(scrollYProgress, [0, 1], [120, -120])
+  const orbOpacity = useTransform(scrollYProgress, [0, 0.4, 0.8, 1], [0.4, 1, 1, 0.5])
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -1670,72 +1853,147 @@ function Contact() {
 
   return (
     <section
+      ref={sectionRef}
       id="contact"
-      className="relative isolate overflow-hidden bg-[#fbfbfd] py-20 sm:py-24 md:py-32 lg:py-40"
+      className="relative isolate overflow-hidden bg-[#1a1330] py-24 sm:py-32 md:py-40 lg:py-48"
     >
+      <motion.div
+        aria-hidden
+        style={{ y: orb1Y, opacity: orbOpacity }}
+        className="pointer-events-none absolute -top-40 left-[10%] h-[680px] w-[680px] rounded-full"
+      >
+        <div
+          className="h-full w-full"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(92,179,255,0.32), transparent 65%)',
+          }}
+        />
+      </motion.div>
+      <motion.div
+        aria-hidden
+        style={{ y: orb2Y, opacity: orbOpacity }}
+        className="pointer-events-none absolute bottom-[-20%] right-[-5%] h-[600px] w-[600px] rounded-full"
+      >
+        <div
+          className="h-full w-full"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(124,92,255,0.28), transparent 65%)',
+          }}
+        />
+      </motion.div>
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/4 h-[460px] w-[460px]"
+        className="pointer-events-none absolute inset-0 opacity-[0.05]"
         style={{
-          background:
-            'radial-gradient(circle, rgba(41,151,255,0.07), transparent 60%)',
+          backgroundImage:
+            'radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
         }}
       />
 
-      <div className="relative mx-auto w-full max-w-[1280px] px-5 sm:px-6 md:px-10">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-12 md:gap-20 lg:gap-24">
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-14 md:grid-cols-12 md:gap-8 lg:gap-12">
           {/* Left — eyebrow, headline, supporting copy, contact items */}
-          <div className="text-center md:col-span-5 md:text-left">
-            <div className="flex items-center justify-center gap-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#0071E3] md:justify-start">
-              <span className="h-px w-7 bg-[#0071E3] sm:w-8" />
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.12, delayChildren: 0.05 } },
+            }}
+            className="text-center md:col-span-5 md:text-left"
+          >
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 18 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+              }}
+              className="flex items-center justify-center gap-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5cb3ff] md:justify-start"
+            >
+              <span className="h-px w-7 bg-[#5cb3ff] sm:w-8" />
               Contact
-            </div>
+            </motion.div>
 
             <h2
-              className="mt-5 text-[#1d1d1f] sm:mt-6"
+              className="mt-5 text-white sm:mt-6"
               style={{
-                fontSize: 'clamp(44px, 5.4vw, 80px)',
-                lineHeight: '1.05',
-                letterSpacing: '-0.025em',
-                fontWeight: 300,
+                fontSize: 'clamp(64px, 9vw, 160px)',
+                lineHeight: '1.0',
+                letterSpacing: '-0.04em',
+                fontWeight: 700,
               }}
             >
-              Let's talk.
+              <RevealHeading
+                parts={[{ text: "Let's" }, { text: 'talk.', mute: true }]}
+              />
             </h2>
 
-            <p className="mx-auto mt-5 max-w-[460px] text-[16px] font-normal leading-[1.55] text-[#6e6e73] sm:mt-6 sm:text-[18px] md:mx-0">
+            <motion.p
+              variants={{
+                hidden: { opacity: 0, y: 18 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+              }}
+              className="mx-auto mt-5 max-w-[460px] text-[17px] font-normal leading-[1.55] text-white/65 sm:mt-6 sm:text-[19px] md:mx-0"
+            >
               Tell us where you struggle with your finances. In a personal call, we'll provide a
               first audit and identify your road to financial control.
-            </p>
+            </motion.p>
 
-            <ContactDetails className="mt-10 hidden space-y-5 rounded-[24px] border border-black/[0.06] bg-white/75 p-5 shadow-[0_16px_48px_-34px_rgba(15,15,30,0.35)] sm:mt-12 md:block" />
-          </div>
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 18 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+              }}
+            >
+              <ContactDetails className="mt-10 hidden space-y-5 rounded-[24px] border border-white/25 bg-white/[0.10] p-6 shadow-[0_24px_64px_-30px_rgba(0,0,0,0.45)] backdrop-blur-2xl sm:mt-12 md:block" />
+            </motion.div>
+          </motion.div>
 
           {/* Right — form card */}
-          <div className="md:col-span-7">
+          <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+            className="md:col-span-7"
+          >
             {sent ? (
               <SuccessCard onReset={() => setSent(false)} />
             ) : (
               <form
                 onSubmit={handleSubmit}
-                className="relative overflow-hidden rounded-[24px] border border-[#0071E3]/20 bg-gradient-to-b from-white to-[#f6fbff] p-6 shadow-[0_34px_90px_-34px_rgba(0,113,227,0.38),0_10px_30px_-22px_rgba(15,15,30,0.28)] ring-1 ring-[#0071E3]/10 sm:rounded-[28px] sm:p-9 md:p-12"
+                className="relative overflow-hidden rounded-[28px] border border-white/25 bg-white/[0.12] p-7 shadow-[0_40px_100px_-30px_rgba(0,0,0,0.55),0_12px_36px_-24px_rgba(92,179,255,0.45)] backdrop-blur-2xl backdrop-saturate-150 sm:rounded-[32px] sm:p-10 md:p-14"
               >
-                <div aria-hidden className="absolute inset-x-6 top-0 h-1 rounded-b-full bg-[#0071E3]" />
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                />
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -inset-px rounded-[inherit] opacity-60"
+                  style={{
+                    background:
+                      'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 40%)',
+                  }}
+                />
 
-                <div className="mb-7 border-b border-black/[0.06] pb-6 text-center sm:mb-8 sm:pb-7 sm:text-left">
-                  <span className="inline-flex items-center gap-2 rounded-pill bg-[#0071E3]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#0071E3]">
+                <div className="relative mb-8 border-b border-white/15 pb-7 text-center sm:mb-10 sm:pb-8 sm:text-left">
+                  <span className="inline-flex items-center gap-2 rounded-pill border border-[#5cb3ff]/40 bg-[#5cb3ff]/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#9fd0ff]">
                     <Mail size={13} strokeWidth={1.8} />
                     Contact form
                   </span>
-                  <h3 className="mt-4 text-[26px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#1d1d1f] sm:text-[32px]">
+                  <h3 className="mt-5 text-[30px] font-bold leading-[1.05] tracking-[-0.035em] text-white sm:text-[40px]">
                     Send a short message.
                   </h3>
-                  <p className="mx-auto mt-2 max-w-[520px] text-[14px] leading-[1.55] text-[#6e6e73] sm:mx-0 sm:text-[15px]">
-                    Tell us what feels unclear. We’ll come back within one working day.
+                  <p className="mx-auto mt-3 max-w-[560px] text-[16px] leading-[1.55] text-white/75 sm:mx-0 sm:text-[17px]">
+                    Tell us what feels unclear. We'll come back within one working day.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div className="relative grid grid-cols-1 gap-6 sm:grid-cols-2">
                   <Field name="name" label="Name" placeholder="Your full name" required />
                   <Field
                     name="email"
@@ -1746,11 +2004,11 @@ function Contact() {
                   />
                 </div>
 
-                <div className="mt-5">
+                <div className="relative mt-6">
                   <Field name="company" label="Company" placeholder="Where do you work?" />
                 </div>
 
-                <div className="mt-5">
+                <div className="relative mt-6">
                   <Field
                     name="message"
                     label="What do you need support with?"
@@ -1773,17 +2031,17 @@ function Contact() {
                 {error && (
                   <div
                     role="alert"
-                    className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] leading-[1.5] text-red-700"
+                    className="relative mt-6 rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-[14px] leading-[1.5] text-red-200 backdrop-blur-md"
                   >
                     {error}
                   </div>
                 )}
 
-                <div className="mt-8 flex flex-col gap-4 border-t border-black/[0.06] pt-7">
+                <div className="relative mt-10 flex flex-col gap-4 border-t border-white/15 pt-8">
                   <button
                     type="submit"
                     disabled={sending}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-pill bg-[#0071E3] px-7 py-4 text-[15px] font-medium text-white transition-all duration-200 hover:bg-[#0077ED] hover:shadow-[0_10px_28px_-8px_rgba(0,113,227,0.45)] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:shadow-none"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-pill bg-[#0071E3] px-7 py-4 text-[16px] font-medium text-white transition-all duration-200 hover:bg-[#2997ff] hover:shadow-[0_14px_36px_-8px_rgba(41,151,255,0.55)] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:shadow-none"
                   >
                     {sending ? (
                       <>
@@ -1797,7 +2055,7 @@ function Contact() {
                       </>
                     )}
                   </button>
-                  <p className="text-center text-[12px] leading-[1.5] text-[#86868b]">
+                  <p className="text-center text-[12px] leading-[1.5] text-white/45">
                     By submitting you agree to be contacted by Cunos Consulting. We don't share
                     your details.
                   </p>
@@ -1805,8 +2063,8 @@ function Contact() {
               </form>
             )}
 
-            <ContactDetails className="mt-8 space-y-5 rounded-[24px] border border-black/[0.06] bg-white/80 p-5 shadow-[0_14px_40px_-32px_rgba(15,15,30,0.32)] md:hidden" />
-          </div>
+            <ContactDetails className="mt-8 space-y-5 rounded-[24px] border border-white/25 bg-white/[0.10] p-6 shadow-[0_24px_64px_-30px_rgba(0,0,0,0.45)] backdrop-blur-2xl md:hidden" />
+          </motion.div>
         </div>
       </div>
     </section>
@@ -1831,22 +2089,22 @@ function SuccessCard({
       initial={{ opacity: 0, y: 12, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className={`flex flex-col items-center justify-center rounded-[24px] border border-[#0071E3]/15 bg-gradient-to-b from-[#eef5ff] to-white p-8 text-center shadow-[0_30px_80px_-30px_rgba(15,15,30,0.18),0_2px_8px_rgba(15,15,30,0.04)] sm:rounded-[28px] sm:p-12 md:p-16 ${className}`}
+      className={`flex flex-col items-center justify-center rounded-[28px] border border-white/15 bg-white/[0.06] p-10 text-center shadow-[0_40px_100px_-30px_rgba(0,0,0,0.7)] backdrop-blur-2xl sm:rounded-[32px] sm:p-14 md:p-16 ${className}`}
     >
-      <div className="grid h-16 w-16 place-items-center rounded-full bg-[#0071E3]/12">
-        <CheckCircle2 size={30} strokeWidth={1.8} className="text-[#0071E3]" />
+      <div className="grid h-16 w-16 place-items-center rounded-full border border-[#5cb3ff]/30 bg-[#5cb3ff]/15 backdrop-blur-md">
+        <CheckCircle2 size={30} strokeWidth={1.8} className="text-[#5cb3ff]" />
       </div>
       <h3
-        className="mt-6 tracking-[-0.02em] text-[#1d1d1f]"
-        style={{ fontSize: 'clamp(28px, 3vw, 36px)', lineHeight: '1.15', fontWeight: 400 }}
+        className="mt-6 text-white"
+        style={{ fontSize: 'clamp(30px, 3.4vw, 44px)', lineHeight: '1.1', letterSpacing: '-0.035em', fontWeight: 700 }}
       >
         {title}
       </h3>
-      <p className="mt-3 max-w-[420px] text-[16px] leading-[1.5] text-[#6e6e73]">{body}</p>
+      <p className="mt-3 max-w-[460px] text-[17px] leading-[1.5] text-white/65">{body}</p>
       <button
         type="button"
         onClick={onReset}
-        className="mt-8 inline-flex items-center gap-1.5 text-[14px] font-medium text-[#0071E3] transition-colors hover:text-[#0077ED]"
+        className="mt-8 inline-flex items-center gap-1.5 text-[15px] font-medium text-[#5cb3ff] transition-colors hover:text-white"
       >
         {resetLabel}
         <ArrowRight size={14} />
@@ -1866,14 +2124,14 @@ function ContactItem({
 }) {
   return (
     <li className="flex items-start gap-4">
-      <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-black/[0.08] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-        <Icon size={17} strokeWidth={1.6} className="text-[#1d1d1f]" />
+      <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/25 bg-white/[0.10] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-md">
+        <Icon size={17} strokeWidth={1.6} className="text-white/85" />
       </div>
       <div className="min-w-0 pt-0.5">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#86868b]">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/45">
           {label}
         </p>
-        <p className="mt-1 text-[16px] text-[#1d1d1f]">{value}</p>
+        <p className="mt-1 text-[16px] text-white/90">{value}</p>
       </div>
     </li>
   )
@@ -1888,7 +2146,7 @@ function ContactDetails({ className = '' }: { className?: string }) {
         value={
           <a
             href={`mailto:${CONTACT.email}`}
-            className="text-[#1d1d1f] transition-colors hover:text-[#0071E3]"
+            className="text-white/90 transition-colors hover:text-[#5cb3ff]"
           >
             {CONTACT.email}
           </a>
@@ -1900,7 +2158,7 @@ function ContactDetails({ className = '' }: { className?: string }) {
         value={
           <a
             href={CONTACT.phoneHref}
-            className="text-[#1d1d1f] transition-colors hover:text-[#0071E3]"
+            className="text-white/90 transition-colors hover:text-[#5cb3ff]"
           >
             {CONTACT.phoneDisplay}
           </a>
@@ -1923,15 +2181,15 @@ type FieldProps = {
 
 function Field({ name, label, placeholder, type = 'text', textarea, required }: FieldProps) {
   const baseCls =
-    'block w-full rounded-2xl border border-black/[0.13] bg-white px-4 py-3.5 text-[16px] text-[#1d1d1f] placeholder-[#86868b] shadow-[0_1px_2px_rgba(15,15,30,0.03)] transition-all duration-200 focus:border-[#2997ff] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2997ff]/15 sm:text-[15px]'
+    'block w-full rounded-2xl border border-white/25 bg-white/[0.10] px-5 py-4 text-[16px] text-white placeholder-white/45 shadow-[inset_0_1px_0_rgba(255,255,255,0.10)] backdrop-blur-md transition-all duration-200 focus:border-[#9fd0ff]/70 focus:bg-white/[0.14] focus:outline-none focus:ring-4 focus:ring-[#5cb3ff]/25 sm:text-[17px]'
   return (
     <label className="block">
-      <span className="mb-2 block text-[12px] font-medium uppercase tracking-[0.08em] text-[#86868b]">
+      <span className="mb-2.5 block text-[12px] font-medium uppercase tracking-[0.08em] text-white/55">
         {label}
-        {required ? <span className="ml-1 text-[#0071E3]">*</span> : null}
+        {required ? <span className="ml-1 text-[#5cb3ff]">*</span> : null}
       </span>
       {textarea ? (
-        <textarea name={name} placeholder={placeholder} required={required} rows={4} className={baseCls} />
+        <textarea name={name} placeholder={placeholder} required={required} rows={5} className={baseCls} />
       ) : (
         <input
           name={name}
@@ -1947,7 +2205,7 @@ function Field({ name, label, placeholder, type = 'text', textarea, required }: 
 
 /* -------------------------------- FOOTER ------------------------------ */
 
-function Footer() {
+export function Footer() {
   const year = new Date().getFullYear()
   return (
     <footer className="relative overflow-hidden bg-[#f5f8fc]">
@@ -1960,22 +2218,57 @@ function Footer() {
         }}
       />
 
-      <div className="mx-auto w-full max-w-[1280px] px-5 py-14 sm:px-6 sm:py-16 md:px-10 md:py-20">
-        <div className="flex flex-col items-center gap-6 border-b border-black/[0.08] pb-10 text-center md:flex-row md:items-center md:justify-between md:pb-12 md:text-left">
-          <div>
+      <div className="mx-auto w-full max-w-[1640px] px-4 py-14 sm:px-5 sm:py-16 md:px-6 md:py-20 lg:px-8">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-80px' }}
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
+          }}
+          className="flex flex-col items-center gap-6 border-b border-black/[0.08] pb-10 text-center md:flex-row md:items-center md:justify-between md:pb-12 md:text-left"
+        >
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+            }}
+          >
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#0071E3]">
               Next step
             </p>
-            <h2 className="mt-3 text-[30px] font-semibold leading-[1.12] tracking-[-0.02em] text-[#1d1d1f] sm:text-[38px]">
-              Ready for clearer finance control?
+            <h2
+              className="mt-3 text-[#1d1d1f]"
+              style={{
+                fontSize: 'clamp(64px, 9vw, 160px)',
+                lineHeight: '1.0',
+                letterSpacing: '-0.04em',
+                fontWeight: 700,
+              }}
+            >
+              <RevealHeading
+                parts={[
+                  { text: 'Ready for' },
+                  { text: 'clearer' },
+                  { text: 'finance' },
+                  { text: 'control?', mute: true },
+                ]}
+              />
             </h2>
             <p className="mx-auto mt-3 max-w-[560px] text-[15px] leading-[1.55] text-[#6e6e73] sm:text-[16px] md:mx-0">
               Send a short message or contact Cunos directly. We’ll come back within one working
               day.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row md:shrink-0">
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+            }}
+            className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row md:shrink-0"
+          >
             <a
               href="#contact"
               className="inline-flex items-center justify-center gap-2 rounded-pill bg-[#0071E3] px-6 py-3 text-[14px] font-medium text-white transition-colors hover:bg-[#0077ED]"
@@ -1990,8 +2283,8 @@ function Footer() {
               <Mail size={15} strokeWidth={1.8} />
               Email us
             </a>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         <div className="grid grid-cols-1 gap-12 pt-10 md:grid-cols-12 md:gap-16 md:pt-12">
           {/* Brand block */}

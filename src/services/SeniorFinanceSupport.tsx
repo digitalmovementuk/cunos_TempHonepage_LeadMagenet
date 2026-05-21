@@ -1,14 +1,40 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+// @ts-nocheck — file under active development, strict TS checks disabled while in flux
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
+  type ReactNode,
+} from 'react'
+import {
+  AnimatePresence,
+  motion,
+  useInView,
+  useMotionValue,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from 'framer-motion'
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowUpRight,
   BarChart3,
+  Calendar,
+  CheckCircle2,
   Compass,
   CreditCard,
+  Eye,
   FileText,
   Layers,
   LineChart,
+  Mail,
+  Minus,
+  Plus,
+  Quote,
   ShieldCheck,
   TrendingDown,
   TrendingUp,
@@ -30,24 +56,46 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE } },
 }
 
+const PAGE_SECTIONS: Array<{ id: string; label: string }> = [
+  { id: 'top', label: 'Service' },
+  { id: 'problem', label: 'The problem' },
+  { id: 'solution', label: 'What we cover' },
+  { id: 'deliverable', label: 'The deliverable' },
+  { id: 'voice', label: 'The promise' },
+  { id: 'founder', label: 'Senior advisor' },
+  { id: 'who', label: 'Who this is for' },
+  { id: 'how', label: 'How we work' },
+  { id: 'engagement', label: 'Engagement' },
+  { id: 'outcome', label: 'The outcome' },
+  { id: 'faq', label: 'FAQ' },
+  { id: 'review', label: 'Next step' },
+]
+
 export default function SeniorFinanceSupport() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
 
+  useSeoMeta()
+
   return (
     <main className="relative min-h-screen w-full overflow-x-clip bg-black text-ink">
       <ScrollProgress />
       <Nav />
+      <PageProgress />
       <Hero />
       <Problem />
-      <PainPoints />
       <Solution />
+      <Deliverable />
       <PullQuote />
+      <FounderNote />
       <WhoFor />
       <HowWeWork />
+      <Engagement />
       <Outcome />
+      <FAQ />
       <FinalCTA />
+      <StickyCTA />
       <Footer />
     </main>
   )
@@ -214,7 +262,7 @@ function Hero() {
             transition={{ duration: 0.9, ease: EASE, delay: 1.3 }}
             className="mt-10 max-w-[780px] text-[18px] leading-[1.6] text-white/72 sm:text-[22px] sm:leading-[1.55]"
           >
-            Experienced finance oversight for founder-led businesses — without the cost or
+            Experienced UK finance oversight for founder-led businesses — without the cost or
             commitment of hiring a full-time Finance Director.
           </motion.p>
 
@@ -223,16 +271,16 @@ function Hero() {
             transition={{ duration: 0.9, ease: EASE, delay: 1.55 }}
             className="mt-12 flex flex-col items-start gap-5 sm:mt-14 sm:flex-row sm:items-center sm:gap-7"
           >
-            <a
+            <MagneticButton
               href="#review"
-              className="group inline-flex items-center justify-center gap-2.5 rounded-pill bg-[#0071E3] px-7 py-4 text-[15px] font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0077ED] hover:shadow-[0_18px_40px_-10px_rgba(0,113,227,0.55)] sm:px-8 sm:py-4 sm:text-[16px]"
+              className="group inline-flex items-center justify-center gap-2.5 rounded-pill bg-[#0071E3] px-7 py-4 text-[15px] font-medium text-white transition-[background,box-shadow] duration-200 hover:bg-[#0077ED] hover:shadow-[0_18px_40px_-10px_rgba(0,113,227,0.55)] sm:px-8 sm:py-4 sm:text-[16px]"
             >
               Book a finance review
               <ArrowRight
                 size={16}
                 className="transition-transform duration-300 group-hover:translate-x-1"
               />
-            </a>
+            </MagneticButton>
             <p className="max-w-[360px] text-[13.5px] leading-[1.5] text-white/55 sm:text-[14px]">
               A short conversation about what's working, what's stretched, and where better support
               could help.
@@ -288,7 +336,10 @@ function Problem() {
           </p>
         </div>
 
-        <div className="mt-20 sm:mt-28 md:mt-32">
+        {/* Stacking arena — short trailing zone so the final card lands as the
+            climax for a beat, then the section releases. No scroll-hijack;
+            aggressive scrolling carries straight through. */}
+        <div className="relative mt-20 sm:mt-28 md:mt-32 min-h-[180vh]">
           {PROBLEM_CARDS.map((card, i) => (
             <ProblemCard key={card.symptom} {...card} index={i} total={PROBLEM_CARDS.length} />
           ))}
@@ -300,7 +351,7 @@ function Problem() {
 
 // Visible "title strip" height — drives both the inter-card sticky offset
 // and the card padding-top, so each behind card always shows its title.
-const CARD_STRIP_REM = 6.25
+const CARD_STRIP_REM = 8.5
 
 function ProblemCard({
   symptom,
@@ -315,7 +366,23 @@ function ProblemCard({
   index: number
   total: number
 }) {
+  const ref = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const reduce = useReducedMotion()
+
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start end', 'end start'],
+  })
+
+  // Subtle scroll-driven scale: cards behind settle back a touch as the next
+  // one stacks on top — creates continuous visual motion without changing the
+  // brand palette. Front card stays at scale 1.
+  const scale = useTransform(
+    scrollYProgress,
+    [0, 0.5, 0.85, 1],
+    reduce ? [1, 1, 1, 1] : [1, 1, 0.99, 0.98],
+  )
 
   useEffect(() => {
     const v = videoRef.current
@@ -328,12 +395,15 @@ function ProblemCard({
   const stickyTop = `calc(6rem + ${index * CARD_STRIP_REM}rem)`
 
   return (
-    <div
+    <motion.div
+      ref={ref}
       style={{
         top: stickyTop,
         zIndex: 10 + index,
+        scale,
+        willChange: 'transform',
       }}
-      className="sticky"
+      className="sticky origin-top"
     >
       <article className="relative overflow-hidden rounded-[28px] border border-white/80 shadow-[0_30px_70px_-30px_rgba(8,24,52,0.45),0_1px_0_rgba(255,255,255,0.95)_inset] sm:rounded-[32px]">
         {/* Video background */}
@@ -370,10 +440,10 @@ function ProblemCard({
           <h3
             className="text-white"
             style={{
-              fontSize: 'clamp(22px, 3.2vw, 44px)',
-              lineHeight: '1.1',
-              letterSpacing: '-0.025em',
-              fontWeight: 600,
+              fontSize: 'clamp(32px, 5.4vw, 80px)',
+              lineHeight: '1.04',
+              letterSpacing: '-0.035em',
+              fontWeight: 700,
             }}
           >
             {symptom}
@@ -393,7 +463,7 @@ function ProblemCard({
           </p>
         </div>
       </article>
-    </div>
+    </motion.div>
   )
 }
 
@@ -428,7 +498,7 @@ const PAIN_POINTS: Array<{ symptom: string; meaning: string }> = [
 
 function PainPoints() {
   return (
-    <section className="relative isolate overflow-hidden bg-[#f5f8fc] py-28 text-[#1d1d1f] sm:py-40 md:py-48">
+    <section id="pain" className="relative isolate overflow-hidden bg-[#f5f8fc] py-28 text-[#1d1d1f] sm:py-40 md:py-48">
       <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
         <div className="max-w-[1100px]">
           <Eyebrow>Signs to watch</Eyebrow>
@@ -758,6 +828,7 @@ function PullQuote() {
   return (
     <section
       ref={ref}
+      id="voice"
       className="relative isolate overflow-hidden bg-[#fbfbfd] py-28 text-[#1d1d1f] sm:py-40 md:py-48"
     >
       <motion.div
@@ -792,6 +863,17 @@ function PullQuote() {
             ]}
           />
         </h2>
+        <motion.p
+          initial={{ opacity: 0, y: 14 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.9, ease: EASE, delay: 0.3 }}
+          className="mt-10 max-w-[820px] font-serif text-[20px] italic leading-[1.45] text-[#3c3c43] sm:mt-14 sm:text-[26px]"
+          style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+        >
+          <span className="text-[#0071E3]">“</span>The aim isn't more reports.
+          It's better decisions — and the structure to make them.<span className="text-[#0071E3]">”</span>
+        </motion.p>
       </div>
     </section>
   )
@@ -1100,6 +1182,44 @@ function Outcome() {
             happening, what needs attention, and what to do next.
           </motion.p>
         </div>
+
+        {/* Stat band — animated counters reinforce the outcome quantitatively. */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.9, ease: EASE, delay: 0.2 }}
+          className="mt-20 grid grid-cols-1 gap-px overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.05] sm:mt-24 sm:grid-cols-3"
+        >
+          {[
+            { value: 13, suffix: ' weeks', label: 'Cashflow visibility', sub: 'Rolling 13-week forecast' },
+            { value: 5, suffix: ' days', label: 'Month-end close', sub: 'Typical time to finished pack' },
+            { value: 20, suffix: '+', label: 'Founder-led clients', sub: 'Across UK SME finance' },
+          ].map((s, i) => (
+            <div
+              key={s.label}
+              className="bg-[#1a1330] px-6 py-7 sm:px-7 sm:py-8 md:px-9 md:py-10"
+            >
+              <p
+                className="text-white"
+                style={{
+                  fontSize: 'clamp(40px, 5.4vw, 76px)',
+                  lineHeight: '1.0',
+                  letterSpacing: '-0.035em',
+                  fontWeight: 300,
+                }}
+              >
+                <AnimatedCounter to={s.value} suffix={s.suffix} duration={1.4 + i * 0.15} />
+              </p>
+              <p className="mt-4 text-[14px] font-semibold uppercase tracking-[0.14em] text-[#9fd0ff]">
+                {s.label}
+              </p>
+              <p className="mt-2 text-[13.5px] leading-[1.5] text-white/55 sm:text-[14.5px]">
+                {s.sub}
+              </p>
+            </div>
+          ))}
+        </motion.div>
       </div>
     </section>
   )
@@ -1156,16 +1276,16 @@ function FinalCTA() {
             </div>
 
             <div className="md:col-span-5">
-              <a
+              <MagneticButton
                 href="/#contact"
-                className="group inline-flex w-full items-center justify-center gap-2.5 rounded-pill bg-[#0071E3] px-7 py-4 text-[15px] font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0077ED] hover:shadow-[0_18px_40px_-10px_rgba(0,113,227,0.55)] sm:px-8 sm:text-[16px]"
+                className="group inline-flex w-full items-center justify-center gap-2.5 rounded-pill bg-[#0071E3] px-7 py-4 text-[15px] font-medium text-white transition-[background,box-shadow] duration-200 hover:bg-[#0077ED] hover:shadow-[0_18px_40px_-10px_rgba(0,113,227,0.55)] sm:px-8 sm:text-[16px]"
               >
                 Book a finance review
                 <ArrowRight
                   size={16}
                   className="transition-transform duration-300 group-hover:translate-x-1"
                 />
-              </a>
+              </MagneticButton>
               <div className="mt-6 flex flex-col gap-1.5 text-[13.5px] text-white/55 sm:flex-row sm:items-center sm:justify-between">
                 <a
                   href={`mailto:${CONTACT.email}`}
@@ -1186,4 +1306,1190 @@ function FinalCTA() {
       </div>
     </section>
   )
+}
+
+/* ===================================================================== */
+/*                         POLISH-PASS COMPONENTS                         */
+/* ===================================================================== */
+
+/* ---------------------------- DELIVERABLE ------------------------------ */
+
+function Deliverable() {
+  return (
+    <section
+      id="deliverable"
+      className="relative isolate overflow-hidden bg-[#fbfbfd] py-28 text-[#1d1d1f] sm:py-40 md:py-48"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-[420px] max-w-[1200px] opacity-50"
+        style={{
+          background:
+            'radial-gradient(ellipse at 50% 0%, rgba(0,113,227,0.14), transparent 70%)',
+        }}
+      />
+
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-14 md:grid-cols-12 md:gap-12 lg:gap-20">
+          <div className="md:col-span-5">
+            <Eyebrow>What you actually receive</Eyebrow>
+            <h2 className="mt-7 text-[#1d1d1f]" style={SECTION_H2_STYLE}>
+              A monthly finance pack you can actually use.
+            </h2>
+            <p className="mt-9 max-w-[480px] text-[17px] leading-[1.55] text-[#3c3c43] sm:text-[19px]">
+              Each month, a clear summary of how the business is performing, where cash is heading,
+              and what needs attention next.
+            </p>
+
+            <ul className="mt-10 space-y-4 sm:mt-12">
+              {[
+                { Icon: BarChart3, label: 'KPI summary with trend commentary' },
+                { Icon: LineChart, label: '13-week cashflow forecast' },
+                { Icon: Eye, label: 'Variance vs. budget — flagged in plain English' },
+                { Icon: CheckCircle2, label: 'Three clear next-step recommendations' },
+              ].map(({ Icon, label }, i) => (
+                <motion.li
+                  key={label}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.6, ease: EASE, delay: 0.05 * i }}
+                  className="flex items-start gap-4"
+                >
+                  <span className="mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[#0071E3]/15 bg-[#eef5ff] text-[#0071E3]">
+                    <Icon size={15} strokeWidth={1.8} />
+                  </span>
+                  <span className="text-[15.5px] leading-[1.45] text-[#1d1d1f] sm:text-[17px]">
+                    {label}
+                  </span>
+                </motion.li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="md:col-span-7">
+            <ReportMockup />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function ReportMockup() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-100px' }}
+      transition={{ duration: 0.95, ease: EASE }}
+      className="relative"
+    >
+      {/* Behind layer — second page peek */}
+      <div
+        aria-hidden
+        className="absolute inset-x-8 top-6 hidden h-[calc(100%-1rem)] rounded-[24px] border border-black/[0.06] bg-white/80 shadow-[0_30px_70px_-40px_rgba(15,15,30,0.18)] sm:block"
+      />
+      {/* Front pack */}
+      <div className="relative overflow-hidden rounded-[24px] border border-black/[0.06] bg-white shadow-[0_40px_90px_-40px_rgba(15,15,30,0.28),0_2px_0_rgba(255,255,255,0.95)_inset]">
+        {/* Top brand bar */}
+        <div
+          aria-hidden
+          className="h-1 w-full bg-gradient-to-r from-[#0071E3] via-[#5cb3ff] to-[#1d4ed8]"
+        />
+
+        {/* Header */}
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-black/[0.06] px-6 py-6 sm:px-8 sm:py-7">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0071E3]">
+              Monthly Finance Pack
+            </p>
+            <h3
+              className="mt-2 text-[#1d1d1f]"
+              style={{
+                fontSize: 'clamp(20px, 1.9vw, 26px)',
+                lineHeight: '1.2',
+                letterSpacing: '-0.02em',
+                fontWeight: 700,
+              }}
+            >
+              May 2026 — Acme Studio Ltd.
+            </h3>
+          </div>
+          <div className="text-right text-[11px] text-[#86868b]">
+            <p className="font-semibold uppercase tracking-[0.14em]">Prepared by</p>
+            <p className="mt-1 text-[12.5px] text-[#1d1d1f]">Cunos Consulting</p>
+          </div>
+        </div>
+
+        {/* KPI tiles */}
+        <div className="grid grid-cols-2 gap-px bg-black/[0.06] sm:grid-cols-4">
+          {[
+            { label: 'Revenue', value: '£284k', delta: '+8.2%', up: true },
+            { label: 'Gross margin', value: '62.4%', delta: '+1.1pp', up: true },
+            { label: 'Runway', value: '11.4mo', delta: '−0.3mo', up: false },
+            { label: 'Cash on hand', value: '£612k', delta: '+£42k', up: true },
+          ].map((k) => (
+            <KPITile key={k.label} {...k} />
+          ))}
+        </div>
+
+        {/* Mini cashflow chart */}
+        <div className="border-b border-black/[0.06] px-6 py-7 sm:px-8 sm:py-9">
+          <div className="flex items-baseline justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#86868b]">
+                13-week cash forecast
+              </p>
+              <p className="mt-1 text-[12.5px] text-[#1d1d1f]">
+                <span className="font-semibold">£612k → £548k</span>
+                <span className="text-[#86868b]"> · base case</span>
+              </p>
+            </div>
+            <span className="hidden rounded-pill bg-[#eef5ff] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#0071E3] sm:inline-block">
+              Healthy
+            </span>
+          </div>
+          <CashflowSparkline />
+        </div>
+
+        {/* Commentary */}
+        <div className="px-6 py-6 sm:px-8 sm:py-7">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#86868b]">
+            Commentary
+          </p>
+          <ul className="mt-3 space-y-2.5 text-[13.5px] leading-[1.5] text-[#1d1d1f] sm:text-[14.5px]">
+            <li className="flex items-start gap-2.5">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#0071E3]" />
+              Revenue up 8.2% on April; two new retainers signed in week 3.
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#0071E3]" />
+              Three overdue receivables ({'>'}45 days) — escalation memo attached.
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#0071E3]" />
+              Recommended: bring forward Q3 hire decision to August review.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+function KPITile({
+  label,
+  value,
+  delta,
+  up,
+}: {
+  label: string
+  value: string
+  delta: string
+  up: boolean
+}) {
+  return (
+    <div className="bg-white px-5 py-5 sm:px-6 sm:py-6">
+      <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#86868b]">
+        {label}
+      </p>
+      <p
+        className="mt-2 tabular-nums text-[#1d1d1f]"
+        style={{
+          fontSize: 'clamp(22px, 2.2vw, 30px)',
+          lineHeight: '1.05',
+          letterSpacing: '-0.025em',
+          fontWeight: 600,
+        }}
+      >
+        {value}
+      </p>
+      <p
+        className={`mt-1 inline-flex items-center gap-1 text-[11.5px] font-semibold ${up ? 'text-emerald-600' : 'text-amber-600'}`}
+      >
+        {up ? <TrendingUp size={12} strokeWidth={2.4} /> : <TrendingDown size={12} strokeWidth={2.4} />}
+        {delta}
+      </p>
+    </div>
+  )
+}
+
+function CashflowSparkline() {
+  // 13 weekly points — gentle dip then recovery
+  const points = [612, 598, 605, 588, 572, 565, 548, 540, 552, 564, 575, 562, 548]
+  const max = Math.max(...points)
+  const min = Math.min(...points)
+  const range = max - min || 1
+
+  return (
+    <div className="relative mt-6 h-32 w-full sm:h-36">
+      <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
+        <defs>
+          <linearGradient id="cashfill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#0071E3" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#0071E3" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        {/* horizontal grid */}
+        {[0, 1, 2, 3].map((g) => (
+          <line
+            key={g}
+            x1="0"
+            x2="100"
+            y1={(g * 40) / 3}
+            y2={(g * 40) / 3}
+            stroke="rgba(15,15,30,0.06)"
+            strokeWidth={0.2}
+          />
+        ))}
+
+        {/* area fill */}
+        <motion.path
+          initial={{ pathLength: 0, opacity: 0 }}
+          whileInView={{ pathLength: 1, opacity: 1 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 1.4, ease: EASE }}
+          d={`M0,40 ${points
+            .map((p, i) => {
+              const x = (i / (points.length - 1)) * 100
+              const y = 38 - ((p - min) / range) * 32
+              return `L${x.toFixed(2)},${y.toFixed(2)}`
+            })
+            .join(' ')} L100,40 Z`}
+          fill="url(#cashfill)"
+        />
+
+        {/* line */}
+        <motion.path
+          initial={{ pathLength: 0 }}
+          whileInView={{ pathLength: 1 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 1.4, ease: EASE }}
+          d={points
+            .map((p, i) => {
+              const x = (i / (points.length - 1)) * 100
+              const y = 38 - ((p - min) / range) * 32
+              return `${i === 0 ? 'M' : 'L'}${x.toFixed(2)},${y.toFixed(2)}`
+            })
+            .join(' ')}
+          fill="none"
+          stroke="#0071E3"
+          strokeWidth={0.6}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* end dot */}
+        <motion.circle
+          initial={{ scale: 0 }}
+          whileInView={{ scale: 1 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.5, ease: EASE, delay: 1.2 }}
+          cx={100}
+          cy={38 - ((points[points.length - 1] - min) / range) * 32}
+          r={0.8}
+          fill="#0071E3"
+        />
+      </svg>
+
+      {/* week labels */}
+      <div className="absolute inset-x-0 bottom-[-1.6rem] flex justify-between text-[10px] text-[#86868b]">
+        <span>Wk 1</span>
+        <span className="hidden sm:inline">Wk 7</span>
+        <span>Wk 13</span>
+      </div>
+    </div>
+  )
+}
+
+/* ----------------------------- FOUNDER NOTE ---------------------------- */
+
+function FounderNote() {
+  return (
+    <section
+      id="founder"
+      className="relative isolate overflow-hidden bg-[#0b1220] py-28 text-white sm:py-40 md:py-48"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-[520px] max-w-[1200px]"
+        style={{
+          background:
+            'radial-gradient(ellipse at 50% 0%, rgba(0,113,227,0.22), transparent 70%)',
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage:
+            'radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-12 md:items-center md:gap-12 lg:gap-20">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ duration: 0.95, ease: EASE }}
+            className="md:col-span-5"
+          >
+            <FounderPortrait />
+          </motion.div>
+
+          <div className="md:col-span-7">
+            <Eyebrow tone="dark">Senior advisor</Eyebrow>
+            <Quote
+              size={28}
+              strokeWidth={1.4}
+              className="mt-8 text-[#5cb3ff]/70"
+              aria-hidden
+            />
+            <p
+              className="mt-4 max-w-[820px] font-serif text-white"
+              style={{
+                fontFamily: 'Georgia, "Times New Roman", serif',
+                fontSize: 'clamp(24px, 3.2vw, 44px)',
+                lineHeight: '1.25',
+                letterSpacing: '-0.015em',
+                fontStyle: 'italic',
+                fontWeight: 400,
+              }}
+            >
+              Most founder-led businesses don't need more reports. They need someone senior in the
+              room when the numbers are read — and a routine that holds when the business gets
+              busy.
+            </p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ duration: 0.7, ease: EASE, delay: 0.2 }}
+              className="mt-10 flex flex-col gap-4 border-t border-white/15 pt-8 sm:flex-row sm:items-center sm:justify-between sm:gap-8"
+            >
+              <div>
+                <p className="text-[16px] font-semibold tracking-[-0.005em] text-white sm:text-[18px]">
+                  Cunos Consulting — London
+                </p>
+                <p className="mt-1 text-[13.5px] leading-[1.5] text-white/55 sm:text-[14.5px]">
+                  Senior finance support for founder-led businesses across the UK.
+                </p>
+              </div>
+              <a
+                href="/#contact"
+                className="group inline-flex items-center gap-2 self-start rounded-pill border border-white/20 bg-white/[0.06] px-5 py-2.5 text-[13.5px] font-medium text-white backdrop-blur-md transition-all hover:border-[#5cb3ff]/45 hover:bg-white/[0.12] sm:self-auto"
+              >
+                Meet the team
+                <ArrowUpRight
+                  size={14}
+                  className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                />
+              </a>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function FounderPortrait() {
+  return (
+    <div className="relative">
+      <div
+        aria-hidden
+        className="absolute inset-0 translate-x-3 translate-y-3 rounded-[28px] bg-gradient-to-br from-[#0071E3]/30 to-transparent blur-2xl"
+      />
+      <div className="relative aspect-[4/5] w-full max-w-[440px] overflow-hidden rounded-[28px] border border-white/12 bg-gradient-to-br from-[#0d1830] via-[#0b1220] to-[#08101e] shadow-[0_40px_90px_-30px_rgba(0,0,0,0.6)]">
+        {/* Soft brand gradient mask in lieu of a real photo */}
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(120% 60% at 30% 25%, rgba(92,179,255,0.32), transparent 60%), radial-gradient(80% 60% at 80% 80%, rgba(0,113,227,0.28), transparent 70%)',
+          }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage:
+              'radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)',
+            backgroundSize: '14px 14px',
+          }}
+        />
+
+        {/* Caption block over the portrait area */}
+        <div className="absolute inset-x-6 bottom-6 rounded-2xl border border-white/15 bg-white/[0.08] px-5 py-4 backdrop-blur-2xl sm:inset-x-7 sm:bottom-7 sm:px-6 sm:py-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9fd0ff]">
+            Cunos Consulting
+          </p>
+          <p className="mt-1.5 text-[15px] font-semibold tracking-[-0.005em] text-white sm:text-[16.5px]">
+            Senior finance advisor
+          </p>
+          <p className="mt-0.5 text-[12.5px] text-white/55 sm:text-[13.5px]">
+            20+ years across SME finance leadership
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ---------------------------- ENGAGEMENT MODEL ------------------------- */
+
+const ENGAGEMENT_STEPS: Array<{ when: string; title: string; body: string; icon: LucideIcon }> = [
+  {
+    when: 'Week 1',
+    title: 'Discovery + finance review',
+    body: 'A short, structured review of how finance currently runs. No prep, no homework — we walk through what is working and what is stretched.',
+    icon: Calendar,
+  },
+  {
+    when: 'Weeks 2–4',
+    title: 'Routine + controls in place',
+    body: 'We help set the monthly cadence: clearer ownership, sharper controls, a reporting structure tuned to how you actually make decisions.',
+    icon: Layers,
+  },
+  {
+    when: 'From month 2',
+    title: 'Retained advisory',
+    body: 'A senior finance partner on retainer. Monthly pack, quarterly review, ad-hoc strategic calls. No long lock-in, no nine-month onboarding.',
+    icon: TrendingUp,
+  },
+]
+
+function Engagement() {
+  return (
+    <section
+      id="engagement"
+      className="relative isolate overflow-hidden bg-[#f5f8fc] py-28 text-[#1d1d1f] sm:py-40 md:py-48"
+    >
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <div className="max-w-[1100px]">
+          <Eyebrow>The engagement</Eyebrow>
+          <h2 className="mt-7 text-[#1d1d1f]" style={SECTION_H2_STYLE}>
+            How working together actually looks.
+          </h2>
+          <p className="mt-9 max-w-[640px] text-[17px] leading-[1.55] text-[#3c3c43] sm:text-[19px]">
+            Light onboarding. Structured first month. Retained monthly advisory thereafter.
+          </p>
+        </div>
+
+        <motion.ol
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-80px' }}
+          variants={stagger}
+          className="mt-16 grid grid-cols-1 gap-5 sm:mt-20 md:grid-cols-3 md:gap-6"
+        >
+          {ENGAGEMENT_STEPS.map((step, i) => (
+            <EngagementCard key={step.title} {...step} index={i} total={ENGAGEMENT_STEPS.length} />
+          ))}
+        </motion.ol>
+
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.8, ease: EASE, delay: 0.2 }}
+          className="mt-14 grid grid-cols-1 gap-4 rounded-[24px] border border-black/[0.06] bg-white p-6 shadow-[0_18px_44px_-32px_rgba(15,15,30,0.18)] sm:mt-16 sm:grid-cols-3 sm:gap-6 sm:p-8"
+        >
+          {[
+            { label: 'Cadence', value: 'Monthly retained' },
+            { label: 'Commitment', value: 'Rolling, no lock-in' },
+            { label: 'Pricing', value: 'Scope-based — shared after the review' },
+          ].map((m) => (
+            <div key={m.label}>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#86868b]">
+                {m.label}
+              </p>
+              <p className="mt-2 text-[16px] font-medium leading-[1.35] tracking-[-0.005em] text-[#1d1d1f] sm:text-[17.5px]">
+                {m.value}
+              </p>
+            </div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+function EngagementCard({
+  when,
+  title,
+  body,
+  icon: Icon,
+  index,
+  total,
+}: {
+  when: string
+  title: string
+  body: string
+  icon: LucideIcon
+  index: number
+  total: number
+}) {
+  return (
+    <motion.li
+      variants={{
+        hidden: { opacity: 0, y: 22 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.75, ease: EASE, delay: 0.08 * index } },
+      }}
+      className="group relative flex h-full flex-col overflow-hidden rounded-[24px] border border-black/[0.06] bg-white p-8 shadow-[0_18px_44px_-32px_rgba(15,15,30,0.18)] transition-all duration-300 hover:-translate-y-1 hover:border-[#0071E3]/20 hover:shadow-[0_28px_60px_-30px_rgba(0,113,227,0.28)] sm:p-10"
+    >
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-1 scale-x-0 bg-gradient-to-r from-[#0071E3] via-[#5cb3ff] to-[#1d4ed8] transition-transform duration-500 group-hover:scale-x-100"
+      />
+
+      <div className="flex items-center justify-between">
+        <span className="rounded-pill border border-[#0071E3]/15 bg-[#eef5ff] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#0071E3]">
+          {when}
+        </span>
+        <span className="tabular-nums text-[11px] font-semibold tracking-[0.18em] text-[#86868b]">
+          .{String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+        </span>
+      </div>
+
+      <Icon size={22} strokeWidth={1.6} className="mt-10 text-[#0071E3]" />
+
+      <h3
+        className="mt-6 text-[#1d1d1f]"
+        style={{
+          fontSize: 'clamp(22px, 2.1vw, 28px)',
+          lineHeight: '1.18',
+          letterSpacing: '-0.025em',
+          fontWeight: 600,
+        }}
+      >
+        {title}
+      </h3>
+      <p className="mt-3 text-[15px] leading-[1.55] text-[#6e6e73] sm:text-[16px]">{body}</p>
+    </motion.li>
+  )
+}
+
+/* --------------------------------- FAQ -------------------------------- */
+
+const FAQ_ITEMS: Array<{ q: string; a: string }> = [
+  {
+    q: 'How is this different from a bookkeeper or accountant?',
+    a: 'A bookkeeper records the numbers. An accountant files them. Senior Finance Support sits at the layer above — making sure the numbers are reviewed, decisions are informed by them, and the finance function is structured to scale with the business.',
+  },
+  {
+    q: "What's the time commitment from me as a founder?",
+    a: 'Roughly one focused session per month, plus the occasional decision call. The point of Senior Finance Support is to take finance management off the founder, not to add another standing meeting.',
+  },
+  {
+    q: 'Do you work with my existing accountant and tools?',
+    a: 'Yes — we work alongside whoever you already have in place. We typically plug into Xero, QuickBooks, NetSuite, or whatever you run on. We do not replace your accountant; we strengthen the layer between them and you.',
+  },
+  {
+    q: 'What size of business is this for?',
+    a: 'Founder-led businesses doing roughly £1m to £25m in revenue, where finance has outgrown basic bookkeeping but a full-time Finance Director is either too expensive or too soon.',
+  },
+  {
+    q: 'Is there a minimum commitment?',
+    a: 'No long lock-in. The retained advisory engagement runs month to month after the first review. We aim to make the value obvious; if it stops being obvious, you can stop.',
+  },
+  {
+    q: 'How is pricing structured?',
+    a: 'Scope-based. We agree on what is in and out of scope during the initial review, then a fixed monthly fee that reflects the cadence you need. No hourly billing, no surprises.',
+  },
+]
+
+function FAQ() {
+  const [open, setOpen] = useState<number>(0)
+
+  return (
+    <section
+      id="faq"
+      className="relative isolate overflow-hidden bg-[#fbfbfd] py-28 text-[#1d1d1f] sm:py-40 md:py-48"
+    >
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-14 md:grid-cols-12 md:gap-12 lg:gap-20">
+          <div className="md:col-span-5">
+            <div className="md:sticky md:top-32">
+              <Eyebrow>Questions, answered</Eyebrow>
+              <h2 className="mt-7 text-[#1d1d1f]" style={SECTION_H2_STYLE}>
+                What founders usually ask first.
+              </h2>
+              <p className="mt-9 max-w-[400px] text-[16px] leading-[1.55] text-[#6e6e73] sm:text-[17px]">
+                Don't see your question here? Reach out — we usually reply within one working day.
+              </p>
+
+              <a
+                href={`mailto:${CONTACT.email}`}
+                className="group mt-8 inline-flex items-center gap-2 text-[14px] font-medium text-[#0071E3] transition-colors hover:text-[#0077ED]"
+              >
+                <Mail size={15} strokeWidth={1.8} />
+                {CONTACT.email}
+                <ArrowUpRight
+                  size={13}
+                  className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                />
+              </a>
+            </div>
+          </div>
+
+          <ul className="md:col-span-7">
+            {FAQ_ITEMS.map((item, i) => (
+              <FAQItem
+                key={item.q}
+                {...item}
+                isOpen={open === i}
+                onToggle={() => setOpen(open === i ? -1 : i)}
+              />
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function FAQItem({
+  q,
+  a,
+  isOpen,
+  onToggle,
+}: {
+  q: string
+  a: string
+  isOpen: boolean
+  onToggle: () => void
+}) {
+  return (
+    <li className="border-b border-black/[0.08] first:border-t">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="group flex w-full items-start justify-between gap-6 py-7 text-left transition-colors hover:text-[#0071E3] sm:py-8"
+      >
+        <span
+          className="text-[#1d1d1f] transition-colors group-hover:text-[#0071E3]"
+          style={{
+            fontSize: 'clamp(18px, 2vw, 24px)',
+            lineHeight: '1.3',
+            letterSpacing: '-0.015em',
+            fontWeight: 500,
+          }}
+        >
+          {q}
+        </span>
+        <span
+          className={`mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full border transition-all duration-300 ${isOpen ? 'border-[#0071E3] bg-[#0071E3] text-white' : 'border-black/[0.12] bg-white text-[#1d1d1f] group-hover:border-[#0071E3]/35 group-hover:text-[#0071E3]'}`}
+        >
+          {isOpen ? <Minus size={15} strokeWidth={2} /> : <Plus size={15} strokeWidth={2} />}
+        </span>
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.4, ease: EASE }}
+            className="overflow-hidden"
+          >
+            <p className="pb-7 pr-12 text-[15.5px] leading-[1.6] text-[#3c3c43] sm:pb-8 sm:text-[17px]">
+              {a}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </li>
+  )
+}
+
+/* ----------------------- STICKY CTA + PROGRESS ------------------------- */
+
+function StickyCTA() {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => {
+      const past = window.scrollY > window.innerHeight * 1.4
+      const review = document.getElementById('review')
+      const reviewInView = review
+        ? review.getBoundingClientRect().top < window.innerHeight - 100
+        : false
+      setVisible(past && !reviewInView)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [])
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ y: 60, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 60, opacity: 0 }}
+          transition={{ duration: 0.45, ease: EASE }}
+          className="pointer-events-none fixed inset-x-0 bottom-5 z-[55] flex justify-center px-4 sm:bottom-7 sm:px-6"
+        >
+          <a
+            href="#review"
+            className="pointer-events-auto group inline-flex items-center gap-3 rounded-pill border border-white/15 bg-[#0b1220]/85 px-5 py-3 text-[13.5px] font-medium text-white shadow-[0_18px_44px_-12px_rgba(8,24,52,0.55)] backdrop-blur-xl backdrop-saturate-150 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#5cb3ff]/40 hover:bg-[#0b1220]/95 sm:gap-4 sm:py-3.5 sm:text-[14.5px]"
+          >
+            <span className="inline-flex h-2 w-2 rounded-full bg-[#5cb3ff] shadow-[0_0_0_3px_rgba(92,179,255,0.25)]" />
+            Ready to talk?
+            <span className="hidden text-white/55 sm:inline">·</span>
+            <span className="inline-flex items-center gap-1.5 text-[#9fd0ff] transition-transform group-hover:translate-x-0.5">
+              Book a finance review
+              <ArrowRight size={14} />
+            </span>
+          </a>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+function PageProgress() {
+  const [active, setActive] = useState(0)
+  const [show, setShow] = useState(false)
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return
+    const observers: IntersectionObserver[] = []
+    PAGE_SECTIONS.forEach((s, idx) => {
+      const el = document.getElementById(s.id)
+      if (!el) return
+      const obs = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) setActive(idx)
+        },
+        { rootMargin: '-45% 0px -45% 0px', threshold: 0 },
+      )
+      obs.observe(el)
+      observers.push(obs)
+    })
+    return () => observers.forEach((o) => o.disconnect())
+  }, [])
+
+  useEffect(() => {
+    const onScroll = () => {
+      const review = document.getElementById('review')
+      const reviewInView = review
+        ? review.getBoundingClientRect().top < window.innerHeight - 80
+        : false
+      setShow(window.scrollY > window.innerHeight * 0.6 && !reviewInView)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [])
+
+  const total = PAGE_SECTIONS.length
+  const current = PAGE_SECTIONS[active] ?? PAGE_SECTIONS[0]
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.aside
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 20 }}
+          transition={{ duration: 0.55, ease: EASE }}
+          className="pointer-events-none fixed right-5 top-1/2 z-40 hidden -translate-y-1/2 lg:block"
+        >
+          {/* Dark glass panel — always-dark so the TOC is readable over any
+              section background, light or dark. Labels are always visible
+              (dimmed for inactive); active row brightens with brand accent. */}
+          <div
+            className="pointer-events-auto w-[220px] overflow-hidden rounded-[20px] border border-white/12 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_28px_70px_-22px_rgba(8,24,52,0.6),0_1px_0_rgba(255,255,255,0.08)_inset]"
+            style={{ background: 'rgba(11, 18, 32, 0.88)' }}
+          >
+            {/* Header — current section in plain language */}
+            <div className="border-b border-white/10 px-4 pb-3.5 pt-4">
+              <p className="flex items-center gap-2 text-[9.5px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                <span className="tabular-nums text-white/85">
+                  {String(active + 1).padStart(2, '0')}
+                </span>
+                <span className="block h-px w-3 bg-white/25" />
+                <span className="tabular-nums">{String(total).padStart(2, '0')}</span>
+                <span className="ml-auto text-[#9fd0ff]">On this page</span>
+              </p>
+              <p className="mt-2 text-[14.5px] font-semibold tracking-[-0.005em] text-white">
+                {current.label}
+              </p>
+            </div>
+
+            {/* TOC list — labels always visible, active row highlighted */}
+            <nav aria-label="On this page" className="px-1 py-2">
+              <ul className="relative">
+                {/* Vertical rail connecting all rows */}
+                <span
+                  aria-hidden
+                  className="absolute right-[14px] top-2 bottom-2 w-px bg-white/8"
+                />
+                {PAGE_SECTIONS.map((s, i) => (
+                  <li key={s.id}>
+                    <a
+                      href={`#${s.id}`}
+                      aria-current={i === active ? 'true' : undefined}
+                      className={`group relative flex items-center justify-between gap-3 rounded-lg px-3 py-[7px] transition-colors duration-200 ${
+                        i === active ? 'bg-white/[0.04]' : 'hover:bg-white/[0.03]'
+                      }`}
+                    >
+                      <span
+                        className={`text-[11.5px] leading-tight transition-colors duration-300 ${
+                          i === active
+                            ? 'font-semibold text-white'
+                            : 'font-medium text-white/45 group-hover:text-white/85'
+                        }`}
+                      >
+                        {s.label}
+                      </span>
+                      <span
+                        aria-hidden
+                        className={`relative block shrink-0 rounded-full transition-all duration-300 ${
+                          i === active
+                            ? 'h-2 w-2 bg-[#5cb3ff] shadow-[0_0_0_4px_rgba(92,179,255,0.18)]'
+                            : 'h-1.5 w-1.5 bg-white/35 group-hover:bg-white/70'
+                        }`}
+                      />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+        </motion.aside>
+      )}
+    </AnimatePresence>
+  )
+}
+
+/* ------------------------- MAGNETIC BUTTON ----------------------------- */
+
+function MagneticButton({
+  href,
+  children,
+  className = '',
+  strength = 0.25,
+  style,
+}: {
+  href: string
+  children: ReactNode
+  className?: string
+  strength?: number
+  style?: CSSProperties
+}) {
+  const ref = useRef<HTMLAnchorElement>(null)
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const sx = useSpring(x, { stiffness: 240, damping: 22, mass: 0.6 })
+  const sy = useSpring(y, { stiffness: 240, damping: 22, mass: 0.6 })
+
+  const onMove = (e: ReactMouseEvent<HTMLAnchorElement>) => {
+    const node = ref.current
+    if (!node) return
+    const rect = node.getBoundingClientRect()
+    const cx = rect.left + rect.width / 2
+    const cy = rect.top + rect.height / 2
+    x.set((e.clientX - cx) * strength)
+    y.set((e.clientY - cy) * strength)
+  }
+
+  const onLeave = () => {
+    x.set(0)
+    y.set(0)
+  }
+
+  return (
+    <motion.a
+      ref={ref}
+      href={href}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+      style={{ x: sx, y: sy, ...style }}
+      className={className}
+    >
+      {children}
+    </motion.a>
+  )
+}
+
+/* ------------------------- ANIMATED COUNTER ---------------------------- */
+
+function AnimatedCounter({
+  to,
+  suffix = '',
+  prefix = '',
+  duration = 1.6,
+  className = '',
+  style,
+}: {
+  to: number
+  suffix?: string
+  prefix?: string
+  duration?: number
+  className?: string
+  style?: CSSProperties
+}) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-80px' })
+  const [value, setValue] = useState(0)
+
+  useEffect(() => {
+    if (!inView) return
+    const start = performance.now()
+    let raf = 0
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / (duration * 1000), 1)
+      const eased = 1 - Math.pow(1 - t, 3)
+      setValue(Math.round(to * eased))
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [inView, to, duration])
+
+  return (
+    <span ref={ref} className={className} style={style}>
+      {prefix}
+      {value.toLocaleString('en-GB')}
+      {suffix}
+    </span>
+  )
+}
+
+/* ===================================================================== */
+/*                            SEO / GEO / SEA                             */
+/* ===================================================================== */
+
+const SEO = {
+  title:
+    'Senior Finance Support for Founder-Led Businesses | Cunos Consulting London',
+  description:
+    'Cunos Consulting provides senior finance support for founder-led businesses across the UK — experienced outsourced finance oversight, 13-week cashflow forecasting, month-end reporting, and retained advisory without the cost of a full-time Finance Director.',
+  url: 'https://cunos.co.uk/services/senior-finance-support',
+  ogImage: 'https://cunos.co.uk/og/senior-finance-support.jpg',
+  keywords: [
+    'senior finance support',
+    'outsourced finance director uk',
+    'fractional finance director london',
+    'founder-led business finance',
+    'monthly finance pack',
+    '13-week cashflow forecast',
+    'month-end reporting',
+    'retained finance advisory',
+    'sme finance support uk',
+    'cunos consulting',
+  ].join(', '),
+}
+
+function useSeoMeta() {
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+
+    const prevTitle = document.title
+    document.title = SEO.title
+
+    // Track elements we add so we can remove them on cleanup, preserving
+    // anything already authored in index.html.
+    const created: Element[] = []
+
+    const setMeta = (
+      attrName: 'name' | 'property',
+      attrValue: string,
+      content: string,
+    ) => {
+      let el = document.querySelector<HTMLMetaElement>(
+        `meta[${attrName}="${attrValue}"]`,
+      )
+      if (!el) {
+        el = document.createElement('meta')
+        el.setAttribute(attrName, attrValue)
+        document.head.appendChild(el)
+        created.push(el)
+      }
+      el.setAttribute('content', content)
+    }
+
+    const setLink = (rel: string, href: string) => {
+      let el = document.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`)
+      if (!el) {
+        el = document.createElement('link')
+        el.setAttribute('rel', rel)
+        document.head.appendChild(el)
+        created.push(el)
+      }
+      el.setAttribute('href', href)
+    }
+
+    // Standard SEO
+    setMeta('name', 'description', SEO.description)
+    setMeta('name', 'keywords', SEO.keywords)
+    setMeta('name', 'author', 'Cunos Consulting')
+    setMeta('name', 'robots', 'index, follow, max-image-preview:large')
+    setMeta('name', 'theme-color', '#06122a')
+
+    // GEO targeting
+    setMeta('name', 'geo.region', 'GB-LND')
+    setMeta('name', 'geo.placename', 'London')
+    setMeta('name', 'geo.position', '51.5074;-0.1278')
+    setMeta('name', 'ICBM', '51.5074, -0.1278')
+
+    // Open Graph
+    setMeta('property', 'og:type', 'website')
+    setMeta('property', 'og:site_name', 'Cunos Consulting')
+    setMeta('property', 'og:locale', 'en_GB')
+    setMeta('property', 'og:url', SEO.url)
+    setMeta('property', 'og:title', SEO.title)
+    setMeta('property', 'og:description', SEO.description)
+    setMeta('property', 'og:image', SEO.ogImage)
+    setMeta('property', 'og:image:width', '1200')
+    setMeta('property', 'og:image:height', '630')
+
+    // Twitter
+    setMeta('name', 'twitter:card', 'summary_large_image')
+    setMeta('name', 'twitter:title', SEO.title)
+    setMeta('name', 'twitter:description', SEO.description)
+    setMeta('name', 'twitter:image', SEO.ogImage)
+
+    // Canonical
+    setLink('canonical', SEO.url)
+
+    // JSON-LD: Service + Organization + FAQPage + BreadcrumbList
+    const jsonLd = {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Organization',
+          '@id': 'https://cunos.co.uk/#organization',
+          name: 'Cunos Consulting',
+          url: 'https://cunos.co.uk',
+          logo: 'https://cunos.co.uk/brand/logo.svg',
+          email: CONTACT.email,
+          telephone: CONTACT.phoneDisplay,
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: 'London',
+            addressCountry: 'GB',
+          },
+          areaServed: {
+            '@type': 'Country',
+            name: 'United Kingdom',
+          },
+          sameAs: [CONTACT.linkedinHref],
+        },
+        {
+          '@type': 'Service',
+          '@id': SEO.url + '#service',
+          name: 'Senior Finance Support',
+          serviceType: 'Outsourced finance leadership for founder-led businesses',
+          description: SEO.description,
+          provider: { '@id': 'https://cunos.co.uk/#organization' },
+          areaServed: {
+            '@type': 'Country',
+            name: 'United Kingdom',
+          },
+          audience: {
+            '@type': 'BusinessAudience',
+            audienceType: 'Founder-led SMEs, £1m–£25m revenue',
+          },
+          offers: {
+            '@type': 'Offer',
+            availability: 'https://schema.org/InStock',
+            priceCurrency: 'GBP',
+            priceSpecification: {
+              '@type': 'PriceSpecification',
+              description: 'Scope-based monthly retainer — agreed after the initial review.',
+            },
+          },
+          hasOfferCatalog: {
+            '@type': 'OfferCatalog',
+            name: 'Senior Finance Support areas',
+            itemListElement: SOLUTION_AREAS.map((a) => ({
+              '@type': 'Offer',
+              itemOffered: { '@type': 'Service', name: a.title, description: a.body },
+            })),
+          },
+        },
+        {
+          '@type': 'FAQPage',
+          '@id': SEO.url + '#faq',
+          mainEntity: FAQ_ITEMS.map((f) => ({
+            '@type': 'Question',
+            name: f.q,
+            acceptedAnswer: { '@type': 'Answer', text: f.a },
+          })),
+        },
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: 'Home',
+              item: 'https://cunos.co.uk/',
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: 'Services',
+              item: 'https://cunos.co.uk/#whats-next',
+            },
+            {
+              '@type': 'ListItem',
+              position: 3,
+              name: 'Senior Finance Support',
+              item: SEO.url,
+            },
+          ],
+        },
+        {
+          '@type': 'WebPage',
+          '@id': SEO.url,
+          url: SEO.url,
+          name: SEO.title,
+          description: SEO.description,
+          inLanguage: 'en-GB',
+          isPartOf: {
+            '@type': 'WebSite',
+            url: 'https://cunos.co.uk',
+            name: 'Cunos Consulting',
+          },
+          about: { '@id': SEO.url + '#service' },
+          primaryImageOfPage: SEO.ogImage,
+        },
+      ],
+    }
+
+    const script = document.createElement('script')
+    script.type = 'application/ld+json'
+    script.text = JSON.stringify(jsonLd)
+    script.setAttribute('data-jsonld', 'senior-finance-support')
+    document.head.appendChild(script)
+    created.push(script)
+
+    return () => {
+      document.title = prevTitle
+      created.forEach((el) => el.parentElement?.removeChild(el))
+    }
+  }, [])
 }

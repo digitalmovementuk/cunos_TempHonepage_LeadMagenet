@@ -137,8 +137,14 @@ export function Nav() {
 
   const navLinks: Array<[string, string]> = [
     ['Services', '/#whats-next'],
-    ['Finance audit', '/#audit'],
+    ['About us', '/#about'],
     ['Contact', '/#contact'],
+  ]
+
+  const drawerServices: Array<[string, string]> = [
+    ['Senior Finance Support', '/services/senior-finance-support'],
+    ['Cashflow Forecast', '/services/cashflow-forecast'],
+    ['Management Report', '/services/management-report'],
   ]
 
   const headerCls = !scrolled
@@ -292,10 +298,39 @@ export function Nav() {
                 ))}
               </nav>
 
+              <div className="mt-8">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0071E3]">
+                  <span className="mr-3 inline-block h-px w-7 align-middle bg-[#0071E3]" />
+                  Services
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {drawerServices.map(([label, href], i) => (
+                    <motion.li
+                      key={href}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.16 + i * 0.05 }}
+                    >
+                      <a
+                        href={href}
+                        onClick={() => setOpen(false)}
+                        className="group flex items-center justify-between rounded-2xl border border-black/[0.08] bg-white px-4 py-3 transition-all hover:-translate-y-0.5 hover:border-[#0071E3]/25 hover:shadow-[0_12px_28px_-18px_rgba(0,113,227,0.35)]"
+                      >
+                        <span className="text-[15px] font-medium text-[#1d1d1f]">{label}</span>
+                        <ArrowRight
+                          size={14}
+                          className="text-[#0071E3] transition-transform group-hover:translate-x-0.5"
+                        />
+                      </a>
+                    </motion.li>
+                  ))}
+                </ul>
+              </div>
+
               <a
                 href="/#contact"
                 onClick={() => setOpen(false)}
-                className="mt-8 inline-flex items-center justify-center gap-2 rounded-pill bg-[#0071E3] px-6 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-[#0077ED]"
+                className="mt-6 inline-flex items-center justify-center gap-2 rounded-pill bg-[#0071E3] px-6 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-[#0077ED]"
               >
                 Book a call <ArrowRight size={15} />
               </a>
@@ -697,7 +732,7 @@ export function RevealHeading({
   gap?: number
 }) {
   return (
-    <span className={`flex flex-wrap gap-x-[0.25em] ${className}`} style={style}>
+    <span className={`flex flex-wrap justify-center gap-x-[0.25em] md:justify-start ${className}`} style={style}>
       {parts.map((p, i) => (
         <motion.span
           key={`${p.text}-${i}`}
@@ -763,7 +798,7 @@ function ComingSoon() {
           whileInView="visible"
           viewport={{ once: true, margin: '-80px' }}
           variants={container}
-          className="max-w-[1080px]"
+          className="mx-auto max-w-[1080px] text-center md:mx-0 md:text-left"
         >
           <motion.p
             variants={item}
@@ -801,7 +836,7 @@ function ComingSoon() {
             <motion.li
               key={s.title}
               variants={item}
-              className="flex h-full flex-col"
+              className="flex h-full flex-col items-center text-center md:items-start md:text-left"
             >
               <div className="group/video relative aspect-[16/10] w-full overflow-hidden rounded-[24px] border border-black/[0.06] bg-[#0c0716] shadow-[0_24px_60px_-32px_rgba(15,15,30,0.35)]">
                 <div

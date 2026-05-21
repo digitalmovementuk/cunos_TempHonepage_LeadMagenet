@@ -3,6 +3,8 @@ import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTra
 
 const SeoAnalyser = lazy(() => import('./seo/SeoAnalyser'))
 const SeniorFinanceSupportPage = lazy(() => import('./services/SeniorFinanceSupport'))
+const CashflowForecastPage = lazy(() => import('./services/CashflowForecast'))
+const ManagementReportPage = lazy(() => import('./services/ManagementReport'))
 
 import {
   ArrowLeft,
@@ -65,21 +67,22 @@ export default function App() {
     )
   }
 
-  if (
-    typeof window !== 'undefined' &&
-    window.location.pathname.replace(/\/$/, '') === '/services/senior-finance-support'
-  ) {
-    return (
-      <Suspense
-        fallback={
-          <main className="grid min-h-screen w-full place-items-center bg-black text-ink/40">
-            <Loader2 size={20} className="animate-spin" />
-          </main>
-        }
-      >
-        <SeniorFinanceSupportPage />
-      </Suspense>
+  if (typeof window !== 'undefined') {
+    const path = window.location.pathname.replace(/\/$/, '')
+    const fallback = (
+      <main className="grid min-h-screen w-full place-items-center bg-black text-ink/40">
+        <Loader2 size={20} className="animate-spin" />
+      </main>
     )
+    if (path === '/services/senior-finance-support') {
+      return <Suspense fallback={fallback}><SeniorFinanceSupportPage /></Suspense>
+    }
+    if (path === '/services/cashflow-forecast') {
+      return <Suspense fallback={fallback}><CashflowForecastPage /></Suspense>
+    }
+    if (path === '/services/management-report') {
+      return <Suspense fallback={fallback}><ManagementReportPage /></Suspense>
+    }
   }
 
   return (
@@ -147,15 +150,18 @@ export function Nav() {
     ['Management Report', '/services/management-report'],
   ]
 
+  const servicePills: Array<[string, string]> = [
+    ['Finance Support', '/services/senior-finance-support'],
+    ['Cashflow Forecast', '/services/cashflow-forecast'],
+    ['Management Report', '/services/management-report'],
+  ]
+
   const headerCls = !scrolled
     ? 'bg-transparent'
     : overLight
       ? 'bg-white/75 backdrop-blur-xl backdrop-saturate-150 border-b border-black/[0.08]'
       : 'bg-black/65 backdrop-blur-xl backdrop-saturate-150 border-b border-white/10'
   const brandCls = overLight ? 'text-[#1d1d1f]' : 'text-white'
-  const linkCls = overLight
-    ? 'text-[#1d1d1f]/80 hover:text-[#1d1d1f]'
-    : 'text-white/80 hover:text-white'
   const hamburgerCls = overLight
     ? 'border-black/10 bg-white text-[#1d1d1f] hover:bg-black/[0.03]'
     : 'border-white/20 bg-white/10 text-white hover:bg-white/15'
@@ -180,17 +186,38 @@ export function Nav() {
             Cunos Consulting
           </a>
 
-          <nav className="hidden items-center gap-8 md:flex lg:gap-10">
-            {navLinks.map(([label, href]) => (
-              <a
-                key={href}
-                href={href}
-                className={`text-[15px] font-medium tracking-tight transition-colors duration-300 ${linkCls}`}
+          {/* Centred services cluster — desktop only. Absolute-positioned inside the
+              header's inner container so true centre is preserved regardless of the
+              widths of the logo and the right-hand utility group. */}
+          <div className="pointer-events-none absolute inset-x-0 top-1/2 hidden -translate-y-1/2 justify-center lg:flex">
+            <div className="pointer-events-auto flex items-center gap-2.5">
+              <span
+                className={`flex items-center gap-2 pr-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] ${
+                  overLight ? 'text-[#1d1d1f]/65' : 'text-white/75'
+                }`}
               >
-                {label}
-              </a>
-            ))}
-          </nav>
+                <span
+                  className={`inline-block h-px w-5 ${
+                    overLight ? 'bg-[#1d1d1f]/30' : 'bg-white/40'
+                  }`}
+                />
+                Services
+              </span>
+              {servicePills.map(([label, href]) => (
+                <a
+                  key={href}
+                  href={href}
+                  className={`rounded-pill border px-3.5 py-1.5 text-[13px] font-medium backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_-14px_rgba(0,113,227,0.4)] ${
+                    overLight
+                      ? 'border-black/15 bg-[#1d1d1f] text-white hover:border-[#0071E3]/35 hover:bg-[#0a0a0c]'
+                      : 'border-black/[0.08] bg-white/95 text-[#1d1d1f] hover:border-[#0071E3]/25 hover:bg-white'
+                  }`}
+                >
+                  {label}
+                </a>
+              ))}
+            </div>
+          </div>
 
           <div className="flex items-center gap-2">
             <a
@@ -237,7 +264,7 @@ export function Nav() {
               onClick={() => setOpen(true)}
               aria-label="Open menu"
               aria-expanded={open}
-              className={`ml-0.5 grid h-10 w-10 place-items-center rounded-full border backdrop-blur-md transition-all md:hidden ${hamburgerCls}`}
+              className={`ml-0.5 grid h-10 w-10 place-items-center rounded-full border backdrop-blur-md transition-all ${hamburgerCls}`}
             >
               <Menu size={18} strokeWidth={1.8} />
             </button>
@@ -255,7 +282,7 @@ export function Nav() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
               onClick={() => setOpen(false)}
-              className="fixed inset-0 z-[60] bg-black/45 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-[60] bg-black/45 backdrop-blur-sm"
             />
             <motion.aside
               key="drawer"
@@ -265,8 +292,8 @@ export function Nav() {
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed inset-y-0 right-0 z-[70] flex w-[88%] max-w-[400px] flex-col bg-[#fbfbfd] px-6 pb-8 pt-5 shadow-[-30px_0_60px_rgba(15,15,30,0.18)] sm:px-7 md:hidden"
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="fixed inset-y-0 right-0 z-[70] flex w-[88%] max-w-[400px] flex-col bg-[#fbfbfd] px-6 pb-8 pt-5 shadow-[-30px_0_60px_rgba(15,15,30,0.18)] sm:px-7 md:w-[68%] md:max-w-[720px] md:px-14 md:pb-14 md:pt-10 lg:max-w-[860px]"
             >
               <div className="flex items-center justify-between">
                 <p className="font-display text-[18px] font-semibold tracking-[-0.012em] text-[#1d1d1f]">

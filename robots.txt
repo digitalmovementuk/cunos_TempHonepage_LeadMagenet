@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+
+# Block obvious build/source paths that should never be public.
+Disallow: /api/
+Disallow: /*.json$
+
+# AI engines — explicit allow for clarity (default is allowed when unlisted).
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://cunos.co.uk/sitemap.xml

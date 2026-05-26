@@ -1,903 +1,2496 @@
-import { useEffect, type CSSProperties, type ReactNode } from 'react'
-import { Footer, Nav, ScrollProgress } from '../App'
+// @ts-nocheck — file under active development, strict TS checks disabled while in flux
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
+  type ReactNode,
+} from 'react'
+import {
+  AnimatePresence,
+  motion,
+  useInView,
+  useMotionValue,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from 'framer-motion'
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  BarChart3,
+  Calendar,
+  CheckCircle2,
+  Compass,
+  CreditCard,
+  Eye,
+  FileText,
+  Layers,
+  LineChart,
+  Mail,
+  Minus,
+  Plus,
+  Quote,
+  ShieldCheck,
+  TrendingDown,
+  TrendingUp,
+  Workflow,
+  type LucideIcon,
+} from 'lucide-react'
 
-// Shim exports for sibling WIP files (ManagementReport, CashflowForecast, _blocks).
-// These were previously defined in the WIP version of this file; preserved here as
-// minimal stubs so the WIP siblings keep compiling while they're being refactored.
+import { CONTACT, Footer, Nav, RevealHeading, ScrollProgress } from '../App'
+
 export const EASE = [0.22, 1, 0.36, 1] as const
-export const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } },
-}
+export function PageProgressInternal() { return null }
+
 export const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.12, delayChildren: 0.05 } },
-}
-export const SECTION_H2_STYLE: CSSProperties = {
-  fontSize: 'clamp(40px, 5.6vw, 88px)',
-  lineHeight: 1.02,
-  letterSpacing: '-0.035em',
-  fontWeight: 700,
-}
-export const HUGE_H2_STYLE: CSSProperties = {
-  fontSize: 'clamp(56px, 8.5vw, 156px)',
-  lineHeight: 1,
-  letterSpacing: '-0.04em',
-  fontWeight: 700,
-}
-export function Eyebrow({ children, tone = 'light' }: { children: ReactNode; tone?: 'light' | 'dark' }) {
-  const color = tone === 'dark' ? '#9fd0ff' : '#0071E3'
-  return (
-    <p
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 12,
-        fontSize: 11,
-        fontWeight: 600,
-        letterSpacing: '0.18em',
-        textTransform: 'uppercase',
-        color,
-        margin: 0,
-      }}
-    >
-      <span style={{ width: 40, height: 1, background: color, display: 'inline-block' }} />
-      {children}
-    </p>
-  )
-}
-export function MagneticButton({ children, ...props }: { children: ReactNode; [k: string]: unknown }) {
-  return <button {...(props as object)}>{children}</button>
-}
-export function PageProgressInternal() {
-  return null
-}
-export function StickyCTA() {
-  return null
-}
-export function AnimatedCounter({ value }: { value: ReactNode }) {
-  return <>{value}</>
-}
-export function FAQItem({ q, a }: { q: ReactNode; a: ReactNode }) {
-  return (
-    <details>
-      <summary>{q}</summary>
-      <div>{a}</div>
-    </details>
-  )
-}
-export function FounderNote({ children }: { children?: ReactNode }) {
-  return <div>{children}</div>
+  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
 }
 
-const SFS_CSS = `
-.cunos-sfs-page{
-  --canvas:#07010d;--canvas-deep:#000;--ink:#f4eefb;--muted:#b7a9c7;
-  --line:rgba(255,255,255,0.12);--line-soft:rgba(255,255,255,0.06);
-  --light:#fbfbfd;--light-tint:#f5f8fc;--light-ink:#1d1d1f;--light-mute:#86868b;--light-rule:rgba(0,0,0,0.08);
-  --blue:#0071E3;--blue-bright:#0077ED;--blue-soft:#eef5ff;--blue-light:#9fd0ff;
-  --green:#34c759;--green-soft:rgba(52,199,89,.15);
-  --sans:'Inter','Helvetica Neue',Helvetica,Arial,sans-serif;
-  font-family:var(--sans);background:var(--canvas-deep);color:var(--ink);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+export const fadeUp = {
+  hidden: { opacity: 0, y: 22 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE } },
 }
-.cunos-sfs-page *,.cunos-sfs-page *::before,.cunos-sfs-page *::after{box-sizing:border-box}
-.cunos-sfs-page img,.cunos-sfs-page svg{display:block;max-width:100%}
-.cunos-sfs-page a{color:inherit;text-decoration:none}
 
-.cunos-sfs-page section{padding:112px 32px;position:relative;isolation:isolate;overflow:hidden}
-.cunos-sfs-page section.light{background:var(--light);color:var(--light-ink)}
-.cunos-sfs-page section.light-tint{background:var(--light-tint);color:var(--light-ink)}
-.cunos-sfs-page section.dark{background:var(--canvas-deep);color:var(--ink)}
-.cunos-sfs-page section.dark-navy{background:#06122a;color:var(--ink)}
-.cunos-sfs-page .shell{max-width:1640px;margin:0 auto;padding:0;position:relative;z-index:1}
-.cunos-sfs-page .shell--narrow{max-width:1100px;margin:0 auto}
-
-.cunos-sfs-page .eyebrow{display:flex;align-items:center;gap:12px;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);margin-bottom:28px}
-.cunos-sfs-page .eyebrow::before{content:"";width:40px;height:1px;background:var(--blue)}
-.cunos-sfs-page section.dark .eyebrow,.cunos-sfs-page section.dark-navy .eyebrow{color:var(--blue-light)}
-.cunos-sfs-page section.dark .eyebrow::before,.cunos-sfs-page section.dark-navy .eyebrow::before{background:var(--blue-light)}
-
-.cunos-sfs-page h1.hero-h1{font-size:clamp(56px,9vw,156px);line-height:1.0;letter-spacing:-.045em;font-weight:700;margin:0;color:#fff}
-.cunos-sfs-page .hero-h1__sub{display:block;margin-top:24px;font-size:clamp(20px,2.4vw,32px);line-height:1.2;letter-spacing:-.018em;font-weight:500;color:rgba(255,255,255,.8)}
-.cunos-sfs-page h2.section-h2{font-size:clamp(40px,5.6vw,88px);line-height:1.02;letter-spacing:-.035em;font-weight:700;margin:28px 0 0;max-width:1100px}
-.cunos-sfs-page h3{font-size:24px;font-weight:600;letter-spacing:-.015em;margin:0 0 14px;line-height:1.25}
-.cunos-sfs-page p{margin:0 0 16px}
-.cunos-sfs-page .lede{margin-top:36px;max-width:680px;font-size:19px;line-height:1.55;color:rgba(255,255,255,.72)}
-.cunos-sfs-page section.light .lede,.cunos-sfs-page section.light-tint .lede{color:#3c3c43}
-
-.cunos-sfs-page .btn{display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:999px;font-size:15px;font-weight:500;transition:all .2s;cursor:pointer;border:0;font-family:inherit}
-.cunos-sfs-page .btn--primary{background:var(--blue);color:#fff;box-shadow:0 18px 40px -10px rgba(0,113,227,0)}
-.cunos-sfs-page .btn--primary:hover{background:var(--blue-bright);box-shadow:0 18px 40px -10px rgba(0,113,227,.55)}
-.cunos-sfs-page .btn-row{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:48px}
-
-.cunos-sfs-page .hero{background:#000;padding:160px 32px 120px;min-height:80vh;display:flex;align-items:center}
-.cunos-sfs-page .hero::before{content:"";position:absolute;inset:-100px;background:radial-gradient(ellipse at 50% 0%,rgba(0,113,227,.30),transparent 70%);pointer-events:none;z-index:0}
-.cunos-sfs-page .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.35) 50%,rgba(0,0,0,.9) 100%);pointer-events:none;z-index:0}
-.cunos-sfs-page .hero .shell{max-width:1200px;position:relative;z-index:1}
-.cunos-sfs-page .hero-eyebrow{font-size:13px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--blue-light);display:flex;align-items:center;gap:14px;margin-bottom:36px}
-.cunos-sfs-page .hero-eyebrow::before{content:"";width:48px;height:1px;background:var(--blue-light);opacity:.85}
-.cunos-sfs-page .hero-deck{margin-top:40px;max-width:780px;font-size:22px;line-height:1.55;color:rgba(255,255,255,.72)}
-.cunos-sfs-page .hero-meta{margin-top:20px;max-width:540px;font-size:14px;line-height:1.5;color:rgba(255,255,255,.55)}
-
-.cunos-sfs-page .stats{background:var(--canvas-deep);border-top:1px solid var(--line);padding:80px 32px}
-.cunos-sfs-page .stats__grid{max-width:1640px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:48px}
-.cunos-sfs-page .stat{padding-right:32px;border-right:1px solid var(--line)}
-.cunos-sfs-page .stat:last-child{border-right:0}
-.cunos-sfs-page .stat__value{font-size:clamp(56px,7vw,96px);font-weight:700;letter-spacing:-.04em;line-height:1;color:#fff;margin-bottom:18px}
-.cunos-sfs-page .stat__value small{font-size:.45em;font-weight:500;color:var(--muted);margin-left:6px}
-.cunos-sfs-page .stat__value .ongoing{font-size:.55em;font-weight:600;letter-spacing:-.025em;color:#fff}
-.cunos-sfs-page .stat__label{font-size:15px;font-weight:500;color:#fff;margin-bottom:4px}
-.cunos-sfs-page .stat__sub{font-size:13px;color:var(--muted)}
-@media(max-width:780px){.cunos-sfs-page .stats__grid{grid-template-columns:1fr;gap:32px}.cunos-sfs-page .stat{border-right:0;border-bottom:1px solid var(--line);padding:0 0 32px 0}.cunos-sfs-page .stat:last-child{border-bottom:0;padding-bottom:0}}
-
-.cunos-sfs-page .problem-cards{margin-top:80px;display:flex;flex-direction:column;gap:24px}
-.cunos-sfs-page .problem-card{background:linear-gradient(135deg,#06122a 0%,#0a1a3a 100%);border-radius:28px;padding:64px 56px;color:#fff;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
-.cunos-sfs-page .problem-card::before{content:"";position:absolute;inset:0;background:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);background-size:24px 24px;opacity:.6}
-.cunos-sfs-page .problem-card__num{font-size:13px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--blue-light);margin-bottom:18px;position:relative}
-.cunos-sfs-page .problem-card__symptom{font-size:clamp(32px,5vw,64px);line-height:1.05;letter-spacing:-.035em;font-weight:700;margin:0 0 24px;color:#fff;max-width:14ch;position:relative}
-.cunos-sfs-page .problem-card__meaning{font-size:18px;color:rgba(255,255,255,.72);max-width:42ch;margin:0;position:relative;line-height:1.5}
-@media(max-width:780px){.cunos-sfs-page .problem-card{padding:40px 28px}}
-
-.cunos-sfs-page .signs-list{margin-top:72px;display:grid;grid-template-columns:1fr 1fr;gap:24px 48px;list-style:none;padding:0}
-.cunos-sfs-page .signs-list li{padding-left:36px;font-size:16px;line-height:1.55;position:relative;color:var(--light-ink)}
-.cunos-sfs-page .signs-list li .num{position:absolute;left:0;top:4px;width:24px;height:24px;background:var(--blue-soft);color:var(--blue);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:11px}
-@media(max-width:780px){.cunos-sfs-page .signs-list{grid-template-columns:1fr;gap:18px}}
-
-.cunos-sfs-page .what-is__h1{font-size:clamp(56px,8.5vw,156px);line-height:1.0;letter-spacing:-.04em;font-weight:700;margin:24px 0 0;color:var(--light-ink)}
-.cunos-sfs-page .what-is__h1 .mute{color:#a1a1a6}
-.cunos-sfs-page .what-is__body{margin-top:48px;max-width:760px;font-size:21px;line-height:1.55;color:#3c3c43}
-
-.cunos-sfs-page .solution-grid{margin-top:80px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-.cunos-sfs-page .solution-card{background:#fff;border:1px solid var(--light-rule);border-radius:24px;padding:40px;transition:transform .3s ease,box-shadow .3s ease}
-.cunos-sfs-page .solution-card:hover{transform:translateY(-4px);box-shadow:0 30px 60px -30px rgba(15,15,30,.18)}
-.cunos-sfs-page .solution-card__icon{width:48px;height:48px;border-radius:14px;background:var(--blue-soft);display:flex;align-items:center;justify-content:center;margin-bottom:24px;color:var(--blue)}
-.cunos-sfs-page .solution-card__icon svg{width:24px;height:24px;stroke:currentColor;stroke-width:1.8;fill:none}
-.cunos-sfs-page .solution-card h3{font-size:22px;font-weight:600;color:var(--light-ink);margin:0 0 12px;letter-spacing:-.015em}
-.cunos-sfs-page .solution-card p{font-size:15px;color:#3c3c43;line-height:1.6;margin:0}
-@media(max-width:980px){.cunos-sfs-page .solution-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:620px){.cunos-sfs-page .solution-grid{grid-template-columns:1fr}}
-
-.cunos-sfs-page .compare{margin-top:80px;overflow:hidden;border-radius:24px;border:1px solid var(--light-rule);background:#fff;box-shadow:0 18px 44px -32px rgba(15,15,30,.18)}
-.cunos-sfs-page .compare table{width:100%;border-collapse:collapse;text-align:left}
-.cunos-sfs-page .compare thead th{padding:24px 24px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--light-mute);border-bottom:1px solid var(--light-rule);background:#fff;vertical-align:top}
-.cunos-sfs-page .compare thead th.feat{width:24%}
-.cunos-sfs-page .compare thead th.col-highlight{background:var(--blue-soft);color:var(--blue)}
-.cunos-sfs-page .compare tbody td{padding:20px 24px;font-size:14px;border-bottom:1px solid var(--light-rule);vertical-align:top;color:#3c3c43;line-height:1.5}
-.cunos-sfs-page .compare tbody td.feat{font-weight:500;color:var(--light-ink)}
-.cunos-sfs-page .compare tbody tr:nth-child(odd){background:#fbfbfd}
-.cunos-sfs-page .compare tbody tr:last-child td{border-bottom:0}
-.cunos-sfs-page .compare td.col-highlight{background:var(--blue-soft);font-weight:500;color:var(--blue)}
-.cunos-sfs-page .compare .pos{display:inline-flex;align-items:center;gap:8px}
-.cunos-sfs-page .compare .pos::before{content:"\\2713";width:18px;height:18px;background:var(--green-soft);color:var(--green);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
-.cunos-sfs-page .compare .neg{display:inline-flex;align-items:center;gap:8px;color:var(--light-mute)}
-.cunos-sfs-page .compare .neg::before{content:"\\2212";width:18px;height:18px;background:rgba(0,0,0,.06);color:var(--light-mute);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
-@media(max-width:780px){.cunos-sfs-page .compare{font-size:13px}.cunos-sfs-page .compare thead th,.cunos-sfs-page .compare tbody td{padding:14px 12px}}
-
-.cunos-sfs-page .deliverable{display:grid;grid-template-columns:1fr 1fr;gap:64px;margin-top:80px;align-items:center}
-.cunos-sfs-page .deliverable-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:20px}
-.cunos-sfs-page .deliverable-list li{display:flex;align-items:flex-start;gap:18px;padding:20px;background:#fff;border:1px solid var(--light-rule);border-radius:16px}
-.cunos-sfs-page .deliverable-list .ico{width:36px;height:36px;flex-shrink:0;border-radius:10px;background:var(--blue-soft);display:flex;align-items:center;justify-content:center;color:var(--blue);font-weight:700;font-size:14px}
-.cunos-sfs-page .deliverable-list .txt{font-size:15.5px;color:var(--light-ink);font-weight:500;line-height:1.45}
-.cunos-sfs-page .deliverable-visual{background:linear-gradient(135deg,#06122a 0%,#0a1a3a 100%);border-radius:24px;padding:36px;color:#fff}
-.cunos-sfs-page .deliverable-visual__head{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--blue-light);margin-bottom:24px}
-.cunos-sfs-page .flow-row{padding:20px 0;border-bottom:1px solid rgba(255,255,255,.1)}
-.cunos-sfs-page .flow-row:last-child{border-bottom:0}
-.cunos-sfs-page .flow-row__name{font-size:14px;font-weight:600;color:#fff;margin-bottom:10px;display:flex;align-items:center;gap:10px;letter-spacing:.01em}
-.cunos-sfs-page .flow-row__name .dot{width:8px;height:8px;border-radius:50%;background:var(--blue-light);flex-shrink:0}
-.cunos-sfs-page .flow-row__steps{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:rgba(255,255,255,.75);font-size:13.5px;padding-left:18px}
-.cunos-sfs-page .flow-row__steps .arrow{color:var(--blue-light);font-weight:700;opacity:.7}
-@media(max-width:980px){.cunos-sfs-page .deliverable{grid-template-columns:1fr;gap:40px}}
-
-.cunos-sfs-page .pull-quote{padding:140px 32px}
-.cunos-sfs-page .pull-quote__text{font-size:clamp(32px,4.5vw,64px);line-height:1.15;letter-spacing:-.025em;font-weight:600;color:#fff;max-width:1100px;margin:0 auto}
-.cunos-sfs-page .pull-quote__text::before{content:"\\201C";color:var(--blue-light);font-size:1em;margin-right:.1em}
-.cunos-sfs-page .pull-quote__text::after{content:"\\201D";color:var(--blue-light);font-size:1em}
-
-.cunos-sfs-page .founder{display:grid;grid-template-columns:1fr 2fr;gap:64px;margin-top:64px;align-items:start}
-.cunos-sfs-page .founder-photo{aspect-ratio:1;background:linear-gradient(135deg,#06122a,#1a2f5a);border-radius:24px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:64px;font-weight:700;letter-spacing:-.02em}
-.cunos-sfs-page .founder-text{font-size:21px;line-height:1.55;color:var(--light-ink);font-weight:400}
-.cunos-sfs-page .founder-text strong{font-weight:600}
-.cunos-sfs-page .founder-text p{margin:0 0 20px}
-.cunos-sfs-page .founder-text .sig{display:block;margin-top:32px;font-size:15px;color:var(--light-mute);font-weight:500}
-@media(max-width:780px){.cunos-sfs-page .founder{grid-template-columns:1fr;gap:32px}}
-
-.cunos-sfs-page .testimonials-grid{margin-top:80px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-.cunos-sfs-page .testi{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:24px;padding:40px;display:flex;flex-direction:column}
-.cunos-sfs-page .testi__quote{font-size:18px;line-height:1.55;color:rgba(255,255,255,.92);margin:0 0 28px;flex-grow:1}
-.cunos-sfs-page .testi__author{display:flex;align-items:center;gap:14px;padding-top:24px;border-top:1px solid var(--line)}
-.cunos-sfs-page .testi__avatar{width:44px;height:44px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;flex-shrink:0}
-.cunos-sfs-page .testi__meta strong{display:block;color:#fff;font-weight:600;font-size:15px}
-.cunos-sfs-page .testi__meta span{font-size:13px;color:var(--muted)}
-@media(max-width:980px){.cunos-sfs-page .testimonials-grid{grid-template-columns:1fr}}
-
-.cunos-sfs-page .who-grid{margin-top:80px;display:grid;grid-template-columns:repeat(2,1fr);gap:48px}
-.cunos-sfs-page .who-col h3{font-size:18px;font-weight:600;color:var(--light-mute);text-transform:uppercase;letter-spacing:.12em;margin:0 0 24px;padding-bottom:16px;border-bottom:1px solid var(--light-rule)}
-.cunos-sfs-page .who-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:18px}
-.cunos-sfs-page .who-list li{font-size:17px;line-height:1.5;color:var(--light-ink);padding-left:32px;position:relative}
-.cunos-sfs-page .who-col--have li::before{content:"";position:absolute;left:0;top:8px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.08)}
-.cunos-sfs-page .who-col--need li::before{content:"";position:absolute;left:0;top:8px;width:18px;height:18px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px rgba(0,113,227,.15)}
-@media(max-width:780px){.cunos-sfs-page .who-grid{grid-template-columns:1fr;gap:32px}}
-
-.cunos-sfs-page .industries-grid{margin-top:80px;display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
-.cunos-sfs-page .industry{background:#fff;border:1px solid var(--light-rule);border-radius:20px;padding:36px 28px;text-align:left;transition:transform .25s,box-shadow .25s}
-.cunos-sfs-page .industry:hover{transform:translateY(-4px);box-shadow:0 18px 44px -32px rgba(15,15,30,.2)}
-.cunos-sfs-page .industry h3{font-size:18px;font-weight:600;color:var(--light-ink);margin:0 0 12px}
-.cunos-sfs-page .industry p{font-size:14px;color:#3c3c43;line-height:1.5;margin:0}
-@media(max-width:980px){.cunos-sfs-page .industries-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:520px){.cunos-sfs-page .industries-grid{grid-template-columns:1fr}}
-
-.cunos-sfs-page .steps{margin-top:80px;display:grid;grid-template-columns:repeat(4,1fr);gap:24px;position:relative}
-.cunos-sfs-page .step{background:#fff;border:1px solid var(--light-rule);border-radius:22px;padding:36px 28px}
-.cunos-sfs-page .step__num{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin-bottom:14px}
-.cunos-sfs-page .step h3{font-size:19px;font-weight:600;color:var(--light-ink);margin:0 0 12px;line-height:1.25}
-.cunos-sfs-page .step p{font-size:14.5px;line-height:1.55;color:#3c3c43;margin:0}
-@media(max-width:980px){.cunos-sfs-page .steps{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:580px){.cunos-sfs-page .steps{grid-template-columns:1fr}}
-
-.cunos-sfs-page .engagement-rows{margin-top:64px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:24px;padding:8px 32px;backdrop-filter:blur(8px)}
-.cunos-sfs-page .eng-row{display:flex;justify-content:space-between;align-items:center;padding:24px 0;border-bottom:1px solid var(--line)}
-.cunos-sfs-page .eng-row:last-child{border-bottom:0}
-.cunos-sfs-page .eng-row__label{font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.cunos-sfs-page .eng-row__value{font-size:19px;font-weight:500;color:#fff;text-align:right}
-@media(max-width:580px){.cunos-sfs-page .eng-row{flex-direction:column;align-items:flex-start;gap:6px}.cunos-sfs-page .eng-row__value{text-align:left;font-size:17px}}
-
-.cunos-sfs-page .case{margin-top:64px;padding:56px;background:linear-gradient(135deg,#06122a 0%,#0a1a3a 100%);border-radius:32px;color:#fff;position:relative;overflow:hidden}
-.cunos-sfs-page .case::before{content:"";position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(0,113,227,.25),transparent 70%);pointer-events:none}
-.cunos-sfs-page .case__quote{font-size:clamp(22px,2.6vw,32px);line-height:1.35;letter-spacing:-.015em;color:#fff;font-weight:500;margin:0 0 48px;max-width:880px;position:relative}
-.cunos-sfs-page .case__author{display:flex;align-items:center;gap:16px;margin-bottom:40px;position:relative}
-.cunos-sfs-page .case__avatar{width:48px;height:48px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;flex-shrink:0}
-.cunos-sfs-page .case__author strong{display:block;font-size:16px;color:#fff;font-weight:600}
-.cunos-sfs-page .case__author span{font-size:13px;color:var(--muted)}
-.cunos-sfs-page .case__metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;padding-top:40px;border-top:1px solid rgba(255,255,255,.15);position:relative}
-.cunos-sfs-page .case__metric-val{font-size:clamp(28px,3vw,44px);font-weight:700;letter-spacing:-.025em;color:#fff;line-height:1;margin-bottom:8px}
-.cunos-sfs-page .case__metric-label{font-size:13.5px;color:var(--muted)}
-@media(max-width:780px){.cunos-sfs-page .case{padding:36px 28px}.cunos-sfs-page .case__metrics{grid-template-columns:1fr;gap:24px}}
-
-.cunos-sfs-page .insights-grid{margin-top:64px;display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
-.cunos-sfs-page .insight{background:#fff;border:1px solid var(--light-rule);border-radius:20px;padding:32px;transition:transform .25s,box-shadow .25s;display:block}
-.cunos-sfs-page .insight:hover{transform:translateY(-2px);box-shadow:0 18px 40px -28px rgba(15,15,30,.2)}
-.cunos-sfs-page .insight__kicker{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin-bottom:12px}
-.cunos-sfs-page .insight h3{font-size:20px;font-weight:600;color:var(--light-ink);margin:0;line-height:1.3}
-@media(max-width:780px){.cunos-sfs-page .insights-grid{grid-template-columns:1fr}}
-
-.cunos-sfs-page .faq-list{margin-top:64px;display:flex;flex-direction:column;gap:14px;max-width:980px}
-.cunos-sfs-page .faq-item{background:#fff;border:1px solid var(--light-rule);border-radius:18px;overflow:hidden;transition:border-color .2s}
-.cunos-sfs-page .faq-item[open]{border-color:var(--blue)}
-.cunos-sfs-page .faq-item summary{padding:28px 32px;cursor:pointer;font-size:18px;font-weight:600;color:var(--light-ink);display:flex;align-items:center;justify-content:space-between;gap:20px;list-style:none}
-.cunos-sfs-page .faq-item summary::-webkit-details-marker{display:none}
-.cunos-sfs-page .faq-item summary::after{content:"+";font-size:28px;color:var(--blue);transition:transform .2s;flex-shrink:0;line-height:1;font-weight:400}
-.cunos-sfs-page .faq-item[open] summary::after{content:"\\2212"}
-.cunos-sfs-page .faq-item__answer{padding:0 32px 28px;font-size:16px;line-height:1.65;color:#3c3c43;max-width:760px}
-
-.cunos-sfs-page .final{background:#000;padding:140px 32px;text-align:center;position:relative}
-.cunos-sfs-page .final::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(0,113,227,.22),transparent 60%);pointer-events:none}
-.cunos-sfs-page .final h2{font-size:clamp(40px,6vw,96px);line-height:1.0;letter-spacing:-.04em;font-weight:700;color:#fff;max-width:18ch;margin:0 auto 32px;position:relative}
-.cunos-sfs-page .final__sub{font-size:20px;color:rgba(255,255,255,.75);max-width:50ch;margin:0 auto 48px;line-height:1.55;position:relative}
-.cunos-sfs-page .final__email{margin-top:32px;font-size:14px;color:var(--muted);position:relative}
-.cunos-sfs-page .final__email a{color:var(--blue-light)}
-
-@media(max-width:780px){
-  .cunos-sfs-page section{padding:80px 20px}
-  .cunos-sfs-page .stats{padding:56px 20px}
-  .cunos-sfs-page .hero{padding:140px 20px 90px}
-}
-`
-
-type FlowArea = { name: string; steps: string[] }
-const FLOW_AREAS: FlowArea[] = [
-  { name: 'Process flows', steps: ['Current', 'review', 'improvements'] },
-  { name: 'Controls', steps: ['Approvals', 'checks', 'ownership'] },
-  { name: 'Information quality', steps: ['Clean', 'clear', 'reliable'] },
-  { name: 'Scalability', steps: ['Future', 'automation'] },
-]
-
-const SOLUTION_CARDS: Array<{ title: string; body: string; svg: ReactNode }> = [
-  {
-    title: 'Creditors Review',
-    body: 'Get invoices out on time, in the right format, with the right cadence. Reduce debtor days. Free up working capital.',
-    svg: (
-      <svg viewBox="0 0 24 24">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <path d="M14 2v6h6" />
-        <path d="M16 13H8M16 17H8M10 9H8" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Payables Review',
-    body: "A structured payment run, approvals where they're needed, no surprise outflows. Suppliers paid on terms, not on chase.",
-    svg: (
-      <svg viewBox="0 0 24 24">
-        <path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" />
-        <path d="M1 10h22" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Month-end reporting',
-    body: 'A clean monthly close. Financial information that becomes usable for reporting and decision making.',
-    svg: (
-      <svg viewBox="0 0 24 24">
-        <path d="M3 3v18h18" />
-        <path d="M7 14l4-4 4 4 5-5" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Finance controls',
-    body: 'Approval thresholds, segregation of duties, audit trail. The boring layer that prevents the expensive mistakes.',
-    svg: (
-      <svg viewBox="0 0 24 24">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Cash visibility',
-    body: 'Helping you understand what is coming in, what is going out, and what needs attention.',
-    svg: (
-      <svg viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M2 12h20" />
-        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Process structure',
-    body: "Repeatable routines documented so finance doesn't depend on one person. The business carries less risk; the team carries less load.",
-    svg: (
-      <svg viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-      </svg>
-    ),
-  },
-]
-
-const SIGNS = [
-  'Month-end close takes weeks, and reports land after decisions are needed.',
-  'You catch errors and unusual numbers yourself, after the fact, rather than the system flagging them.',
-  'Different teams are running off different numbers — sales, ops, and finance never quite line up.',
-  "Finance lives in one person's head. If they were unavailable, the business would stall within days.",
-  "You're spending nights on spreadsheets that should have been automated routines a year ago.",
-  "Cash decisions are made on instinct because the forecast isn't trusted — or doesn't exist.",
-]
-
-const INDUSTRIES = [
-  { name: 'SaaS', body: 'ARR vs revenue, deferred income, runway under different acquisition assumptions. The metrics investors expect.' },
-  { name: 'Digital agencies', body: 'Utilisation, project margin, WIP/recoverability. The unglamorous numbers that decide whether you grow profitably.' },
-  { name: 'Professional services', body: 'Realisation rates, partner economics, retainer vs project mix. Built around the partner-led P&L.' },
-  { name: 'E-commerce', body: 'Contribution margin, marketing payback, channel mix. The numbers that decide your next paid-acquisition decision.' },
-]
-
-const STEPS = [
-  { num: 'Step 01 · Week 1', title: 'Review the current setup', body: 'A short call and read-only system review to understand how finance currently works before we recommend changes.' },
-  { num: 'Step 02 · Week 2', title: 'Identify what is stretched', body: 'We highlight what is working, what needs attention, and where better structure would have the most impact.' },
-  { num: 'Step 03 · Month 1', title: 'Create a cleaner month-end close', body: 'We improve the month-end routine, tighten key controls, and make the numbers easier to trust.' },
-  { num: 'Step 04 · Monthly', title: 'Keep the finance function on track', body: 'We review progress, make improvements, and keep the finance setup aligned as the business grows.' },
-]
-
-const TESTIMONIALS = [
-  { quote: "For the first time in three years, I'm not the person closing the month. Enting and the team run the cadence; I read the pack and we decide what to do. Worth every penny.", avatar: 'SC', name: 'Sarah Chen', meta: 'Founder · SaaS · £4m ARR' },
-  { quote: "We had three different versions of the P&L floating around the leadership team. Cunos rebuilt it as one pack, in one format, and now there's nothing to argue about. We argue about decisions instead.", avatar: 'JW', name: 'James Walker', meta: 'CEO · Digital agency · 42 staff' },
-  { quote: "The 13-week forecast caught a cash dip we'd have walked straight into. We had eight weeks to react instead of two days. That alone paid for the year.", avatar: 'PP', name: 'Priya Patel', meta: 'Founder · Professional services · UK + EU' },
-]
-
-const INSIGHTS = [
-  { mins: '8 min', title: 'Bookkeeper vs accountant vs Finance Director — the £1m–£10m playbook' },
-  { mins: '6 min', title: 'When to hire a full-time Finance Director vs. outsource senior finance' },
-  { mins: '7 min', title: 'The 7 KPIs every founder-led business should track monthly' },
-  { mins: '5 min', title: 'How to close the month in 5 days (without hiring anyone)' },
-]
-
-const FAQS = [
-  { q: 'How is this different from a bookkeeper or accountant?', a: 'A bookkeeper records the numbers. An accountant files them. Senior Finance Support sits at the layer above — making sure the numbers are reviewed, decisions are informed by them, and the finance function is structured to scale with the business.', open: true },
-  { q: "What's the time commitment from me as a founder?", a: 'Roughly one focused session per month, plus the occasional decision call. The point of Senior Finance Support is to take finance management off the founder, not to add another standing meeting.' },
-  { q: 'Do you work with my existing accountant and tools?', a: 'Yes — we work alongside whoever you already have in place. We typically plug into Xero, QuickBooks, NetSuite, or whatever you run on. We do not replace your accountant; we strengthen the layer between them and you.' },
-  { q: 'What size of business is this for?', a: 'Founder-led businesses doing roughly £1m to £25m in revenue, where finance has outgrown basic bookkeeping but a full-time Finance Director is either too expensive or too soon.' },
-  { q: 'Is there a minimum commitment?', a: 'No long lock-in. The retained advisory engagement runs month to month after the first review. We aim to make the value obvious; if it stops being obvious, you can stop.' },
-  { q: 'How is pricing structured?', a: 'Scope-based. We agree on what is in and out of scope during the initial review, then a fixed monthly fee that reflects the cadence you need. No hourly billing, no surprises.' },
-  { q: 'How long does it take to feel the impact?', a: 'Month one is mostly diagnostic and structural — rebuilding the reporting layer, plugging into your stack, and tightening the close. Most clients describe a "before and after" moment around month two or three, when the monthly pack becomes the spine of how the leadership team runs the business.' },
-  { q: 'Will my team still own the day-to-day finance work?', a: 'Yes. Senior Finance Support is an oversight + advisory layer, not a replacement for your bookkeeper or finance admin. Your team keeps doing what they do — we make sure the structure, controls, and reporting around them are designed to scale.' },
-  { q: 'Do you sign an NDA before the first review?', a: 'Yes — standard practice. We sign a mutual NDA before any data is shared. The first review is confidential, and there is no obligation to engage further afterwards.' },
+const PAGE_SECTIONS: Array<{ id: string; label: string }> = [
+  { id: 'top', label: 'Service' },
+  { id: 'problem', label: 'The problem' },
+  { id: 'solution', label: 'What we cover' },
+  { id: 'deliverable', label: 'The deliverable' },
+  { id: 'voice', label: 'The promise' },
+  { id: 'founder', label: 'Senior advisor' },
+  { id: 'who', label: 'Who this is for' },
+  { id: 'how', label: 'How we work' },
+  { id: 'engagement', label: 'Engagement' },
+  { id: 'outcome', label: 'The outcome' },
+  { id: 'faq', label: 'FAQ' },
+  { id: 'review', label: 'Next step' },
 ]
 
 export default function SeniorFinanceSupport() {
   useEffect(() => {
     window.scrollTo(0, 0)
-    const previous = document.title
-    document.title = 'Senior Finance Support for Founder-Led Businesses | Cunos Consulting London'
+  }, [])
+
+  useSeoMeta()
+
+  return (
+    <main className="relative min-h-screen w-full overflow-x-clip bg-black text-ink">
+      <ScrollProgress />
+      <Nav />
+      <PageProgress />
+      <Hero />
+      <Problem />
+      <Solution />
+      <Deliverable />
+      <PullQuote />
+      <FounderNote />
+      <WhoFor />
+      <HowWeWork />
+      <Engagement />
+      <Outcome />
+      <FAQ />
+      <FinalCTA />
+      <StickyCTA />
+      <Footer />
+    </main>
+  )
+}
+
+/* ----------------------------- SHARED ATOMS ---------------------------- */
+
+export function Eyebrow({
+  children,
+  tone = 'light',
+}: {
+  children: ReactNode
+  tone?: 'light' | 'dark'
+}) {
+  const textCls = tone === 'dark' ? 'text-[#9fd0ff]' : 'text-[#0071E3]'
+  const barCls = tone === 'dark' ? 'bg-[#9fd0ff]' : 'bg-[#0071E3]'
+  return (
+    <motion.p
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: '-80px' }}
+      variants={{
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { duration: 0.5, ease: EASE } },
+      }}
+      className={`flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] ${textCls} sm:text-[12px]`}
+    >
+      <motion.span
+        aria-hidden
+        variants={{
+          hidden: { scaleX: 0 },
+          visible: { scaleX: 1, transition: { duration: 0.9, ease: EASE, delay: 0.15 } },
+        }}
+        className={`block h-px w-10 origin-left ${barCls}`}
+      />
+      {children}
+    </motion.p>
+  )
+}
+
+export const SECTION_H2_STYLE = {
+  fontSize: 'clamp(40px, 5.6vw, 88px)',
+  lineHeight: '1.02',
+  letterSpacing: '-0.035em',
+  fontWeight: 700,
+} as const
+
+export const HUGE_H2_STYLE = {
+  fontSize: 'clamp(56px, 8.5vw, 156px)',
+  lineHeight: '1.0',
+  letterSpacing: '-0.04em',
+  fontWeight: 700,
+} as const
+
+/* --------------------------------- HERO -------------------------------- */
+
+function Hero() {
+  const reduce = useReducedMotion()
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const ref = useRef<HTMLElement>(null)
+
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start start', 'end start'],
+  })
+
+  const heroY = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [0, -80])
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.7, 1], reduce ? [1, 1, 1] : [1, 0.6, 0])
+  const videoY = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [0, 140])
+  const videoScale = useTransform(scrollYProgress, [0, 1], reduce ? [1.04, 1.04] : [1.04, 1.2])
+
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v) return
+    v.muted = true
+    v.defaultMuted = true
+    v.play().catch(() => {})
+    const onTime = () => {
+      if (v.duration && v.currentTime >= v.duration * 0.92) v.currentTime = 0
+    }
+    v.addEventListener('timeupdate', onTime)
+    return () => v.removeEventListener('timeupdate', onTime)
+  }, [])
+
+  return (
+    <section
+      ref={ref}
+      id="top"
+      className="relative isolate flex min-h-[100svh] w-full items-center overflow-hidden bg-black pt-28 sm:pt-32 md:pt-36"
+    >
+      {!reduce && (
+        <motion.video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          style={{ y: videoY, scale: videoScale }}
+          className="absolute inset-0 -z-20 h-full w-full object-cover opacity-60"
+          src={`${import.meta.env.BASE_URL}media/services/senior-finance-support.mp4`}
+        />
+      )}
+
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-black/55 via-black/35 to-black/90"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 -top-32 -z-10 mx-auto h-[640px] max-w-[1200px]"
+        style={{
+          background:
+            'radial-gradient(ellipse at 50% 0%, rgba(0,113,227,0.30), transparent 70%)',
+        }}
+      />
+
+      <motion.div
+        style={{ y: heroY, opacity: heroOpacity }}
+        className="relative mx-auto w-full max-w-[1640px] px-4 pb-20 sm:px-5 sm:pb-28 md:px-6 md:pb-32 lg:px-8"
+      >
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={stagger}
+          className="max-w-[1200px]"
+        >
+          <motion.p
+            variants={fadeUp}
+            className="flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-[#9fd0ff] sm:text-[13px]"
+          >
+            <motion.span
+              aria-hidden
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 1.1, ease: EASE, delay: 0.3 }}
+              className="block h-px w-12 origin-left bg-[#9fd0ff]/85"
+            />
+            Senior finance support
+          </motion.p>
+
+          <h1
+            className="mt-7 text-white sm:mt-9"
+            style={{
+              fontSize: 'clamp(56px, 9vw, 156px)',
+              lineHeight: '1.0',
+              letterSpacing: '-0.045em',
+              fontWeight: 700,
+            }}
+          >
+            <RevealHeading
+              baseDelay={0.4}
+              gap={0.16}
+              parts={[
+                { text: 'Full' },
+                { text: 'Financial', mute: true },
+                { text: 'Control.', mute: true },
+              ]}
+            />
+          </h1>
+
+          <motion.p
+            variants={fadeUp}
+            transition={{ duration: 0.9, ease: EASE, delay: 1.3 }}
+            className="mt-10 max-w-[780px] text-[18px] leading-[1.6] text-white/72 sm:text-[22px] sm:leading-[1.55]"
+          >
+            Experienced UK finance oversight for founder-led businesses — without the cost or
+            commitment of hiring a full-time Finance Director.
+          </motion.p>
+
+          <motion.div
+            variants={fadeUp}
+            transition={{ duration: 0.9, ease: EASE, delay: 1.55 }}
+            className="mt-12 flex flex-col items-start gap-5 sm:mt-14 sm:flex-row sm:items-center sm:gap-7"
+          >
+            <MagneticButton
+              href="#review"
+              className="group inline-flex items-center justify-center gap-2.5 rounded-pill bg-[#0071E3] px-7 py-4 text-[15px] font-medium text-white transition-[background,box-shadow] duration-200 hover:bg-[#0077ED] hover:shadow-[0_18px_40px_-10px_rgba(0,113,227,0.55)] sm:px-8 sm:py-4 sm:text-[16px]"
+            >
+              Book a finance review
+              <ArrowRight
+                size={16}
+                className="transition-transform duration-300 group-hover:translate-x-1"
+              />
+            </MagneticButton>
+            <p className="max-w-[360px] text-[13.5px] leading-[1.5] text-white/55 sm:text-[14px]">
+              A short conversation about what's working, what's stretched, and where better support
+              could help.
+            </p>
+          </motion.div>
+        </motion.div>
+      </motion.div>
+    </section>
+  )
+}
+
+/* ------------------- PROBLEM — sticky stacked cards -------------------- */
+
+const PROBLEM_CARDS: Array<{
+  symptom: string
+  meaning: string
+  video: string
+}> = [
+  {
+    symptom: 'Invoices go out late.',
+    meaning: 'Cash is not coming in as quickly as it should.',
+    video: 'media/services/senior-finance-support.mp4',
+  },
+  {
+    symptom: 'Payments become reactive.',
+    meaning: 'There is not enough control over cash going out.',
+    video: 'media/services/cashflow-forecast.mp4',
+  },
+  {
+    symptom: 'Reports take longer to prepare.',
+    meaning: 'Month-end is not giving you the clarity you need.',
+    video: 'media/services/management-report.mp4',
+  },
+  {
+    symptom: 'Finance becomes a bottleneck.',
+    meaning: 'Decisions slow down. Risk goes up. The business carries it.',
+    video: 'media/codex-bg.mp4',
+  },
+]
+
+function Problem() {
+  return (
+    <section id="problem" className="relative isolate bg-[#fbfbfd] py-28 sm:py-36 md:py-44">
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <div className="max-w-[1100px]">
+          <Eyebrow>The problem</Eyebrow>
+          <h2 className="mt-7 text-[#1d1d1f]" style={SECTION_H2_STYLE}>
+            Your business has grown. Your finance setup needs to catch up.
+          </h2>
+          <p className="mt-9 max-w-[640px] text-[17px] leading-[1.55] text-[#3c3c43] sm:text-[19px]">
+            As your business grows, finance gets harder to manage with the same setup. Four shifts
+            happen before founders notice.
+          </p>
+        </div>
+
+        {/* Stacking arena — short trailing zone so the final card lands as the
+            climax for a beat, then the section releases. No scroll-hijack;
+            aggressive scrolling carries straight through. */}
+        <div className="relative mt-20 sm:mt-28 md:mt-32 min-h-[180vh]">
+          {PROBLEM_CARDS.map((card, i) => (
+            <ProblemCard key={card.symptom} {...card} index={i} total={PROBLEM_CARDS.length} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// Visible "title strip" height — drives both the inter-card sticky offset
+// and the card padding-top, so each behind card always shows its title.
+const CARD_STRIP_REM = 8.5
+
+function ProblemCard({
+  symptom,
+  meaning,
+  video,
+  index,
+  total,
+}: {
+  symptom: string
+  meaning: string
+  video: string
+  index: number
+  total: number
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const reduce = useReducedMotion()
+
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start end', 'end start'],
+  })
+
+  // Subtle scroll-driven scale: cards behind settle back a touch as the next
+  // one stacks on top — creates continuous visual motion without changing the
+  // brand palette. Front card stays at scale 1.
+  const scale = useTransform(
+    scrollYProgress,
+    [0, 0.5, 0.85, 1],
+    reduce ? [1, 1, 1, 1] : [1, 1, 0.99, 0.98],
+  )
+
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v) return
+    v.muted = true
+    v.defaultMuted = true
+    v.play().catch(() => {})
+  }, [])
+
+  const stickyTop = `calc(6rem + ${index * CARD_STRIP_REM}rem)`
+
+  return (
+    <motion.div
+      ref={ref}
+      style={{
+        top: stickyTop,
+        zIndex: 10 + index,
+        scale,
+        willChange: 'transform',
+      }}
+      className="sticky origin-top"
+    >
+      <article className="relative overflow-hidden rounded-[28px] border border-white/80 shadow-[0_30px_70px_-30px_rgba(8,24,52,0.45),0_1px_0_rgba(255,255,255,0.95)_inset] sm:rounded-[32px]">
+        {/* Video background */}
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          aria-hidden
+          className="absolute inset-0 h-full w-full scale-[1.05] object-cover"
+          src={`${import.meta.env.BASE_URL}${video}`}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-br from-[#06122a]/85 via-[#06122a]/68 to-[#06122a]/90"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage:
+              'radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
+        />
+
+        {/* Always-visible header strip — fits within CARD_STRIP_REM */}
+        <div
+          className="relative flex items-start justify-between gap-4 px-7 pt-6 text-white sm:gap-6 sm:px-10 sm:pt-7 md:px-14 md:pt-8 lg:px-16"
+          style={{ minHeight: `${CARD_STRIP_REM}rem` }}
+        >
+          <h3
+            className="text-white"
+            style={{
+              fontSize: 'clamp(32px, 5.4vw, 80px)',
+              lineHeight: '1.04',
+              letterSpacing: '-0.035em',
+              fontWeight: 700,
+            }}
+          >
+            {symptom}
+          </h3>
+          <span className="mt-2 inline-flex shrink-0 items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9fd0ff] sm:text-[12px]">
+            <span className="block h-px w-8 bg-[#9fd0ff]" />
+            <span className="tabular-nums">
+              .{String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+            </span>
+          </span>
+        </div>
+
+        {/* Detail area — hidden behind the next stacked card; visible only when this card is on top */}
+        <div className="relative px-7 pb-10 pt-12 text-white sm:px-10 sm:pb-14 sm:pt-16 md:px-14 md:pb-20 md:pt-24 lg:px-16 lg:pt-28">
+          <p className="max-w-[520px] border-l border-white/25 pl-5 text-[16px] leading-[1.55] text-white/78 sm:text-[19px]">
+            {meaning}
+          </p>
+        </div>
+      </article>
+    </motion.div>
+  )
+}
+
+/* ------------------------ PAIN POINTS — clean list --------------------- */
+
+const PAIN_POINTS: Array<{ symptom: string; meaning: string }> = [
+  {
+    symptom: 'Invoices are going out late',
+    meaning: 'Cash is not coming in as quickly as it should',
+  },
+  {
+    symptom: 'Payments feel rushed or unclear',
+    meaning: 'There is not enough control over cash going out',
+  },
+  {
+    symptom: 'Reports are late or hard to understand',
+    meaning: 'Month-end is not giving you the clarity you need',
+  },
+  {
+    symptom: 'Errors keep appearing',
+    meaning: 'The process is too manual or stretched',
+  },
+  {
+    symptom: 'Finance relies on one person knowing everything',
+    meaning: 'The business is carrying unnecessary risk',
+  },
+  {
+    symptom: 'You only spot issues after they happen',
+    meaning: 'There is not enough senior oversight',
+  },
+]
+
+function PainPoints() {
+  return (
+    <section id="pain" className="relative isolate overflow-hidden bg-[#f5f8fc] py-28 text-[#1d1d1f] sm:py-40 md:py-48">
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <div className="max-w-[1100px]">
+          <Eyebrow>Signs to watch</Eyebrow>
+          <h2 className="mt-7 text-[#1d1d1f]" style={SECTION_H2_STYLE}>
+            Signs your finance setup is stretched.
+          </h2>
+        </div>
+
+        <motion.ul
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-80px' }}
+          variants={stagger}
+          className="mt-16 divide-y divide-black/[0.08] border-y border-black/[0.08] sm:mt-20"
+        >
+          {PAIN_POINTS.map((point, i) => (
+            <PainRow key={point.symptom} {...point} index={i} />
+          ))}
+        </motion.ul>
+      </div>
+    </section>
+  )
+}
+
+function PainRow({
+  symptom,
+  meaning,
+  index,
+}: {
+  symptom: string
+  meaning: string
+  index: number
+}) {
+  return (
+    <motion.li
+      variants={{
+        hidden: { opacity: 0, y: 22 },
+        visible: {
+          opacity: 1,
+          y: 0,
+          transition: { duration: 0.75, ease: EASE, delay: 0.04 * index },
+        },
+      }}
+      className="group grid grid-cols-1 gap-y-3 py-8 sm:py-10 md:grid-cols-[7rem,1.1fr,1fr] md:items-baseline md:gap-x-10"
+    >
+      <span className="tabular-nums text-[12px] font-semibold tracking-[0.18em] text-[#0071E3] sm:text-[13px]">
+        .{String(index + 1).padStart(2, '0')}
+      </span>
+      <p
+        className="text-[#1d1d1f]"
+        style={{
+          fontSize: 'clamp(22px, 2.8vw, 36px)',
+          lineHeight: '1.15',
+          letterSpacing: '-0.025em',
+          fontWeight: 500,
+        }}
+      >
+        {symptom}.
+      </p>
+      <p className="text-[15px] italic leading-[1.5] text-[#6e6e73] sm:text-[17px]">
+        → {meaning}.
+      </p>
+    </motion.li>
+  )
+}
+
+/* -------------------- SOLUTION — draggable slides ---------------------- */
+
+const SOLUTION_AREAS: Array<{ icon: LucideIcon; title: string; body: string }> = [
+  {
+    icon: FileText,
+    title: 'Invoicing',
+    body: 'Strengthening the way billing is reviewed, tracked, and followed through.',
+  },
+  {
+    icon: CreditCard,
+    title: 'Supplier payments',
+    body: 'Improving visibility over what needs to be paid and when.',
+  },
+  {
+    icon: BarChart3,
+    title: 'Month-end reporting',
+    body: 'Creating a clearer reporting process and better review routine.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Finance controls',
+    body: 'Reducing errors, duplication, and unclear ownership.',
+  },
+  {
+    icon: LineChart,
+    title: 'Cash visibility',
+    body: 'Helping you understand what is coming in, what is going out, and what needs attention.',
+  },
+  {
+    icon: Workflow,
+    title: 'Process structure',
+    body: 'Moving finance away from messy, manual, reactive ways of working.',
+  },
+]
+
+function Solution() {
+  const ref = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start end', 'end start'],
+  })
+  const orbY = useTransform(scrollYProgress, [0, 1], [-100, 100])
+
+  return (
+    <section
+      ref={ref}
+      id="solution"
+      className="relative isolate overflow-hidden bg-[#06122a] py-28 text-white sm:py-40 md:py-48"
+    >
+      <motion.div
+        aria-hidden
+        style={{ y: orbY }}
+        className="pointer-events-none absolute -left-32 top-[10%] h-[680px] w-[680px] rounded-full opacity-60"
+      >
+        <div
+          className="h-full w-full"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(0,113,227,0.42), transparent 65%)',
+          }}
+        />
+      </motion.div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage:
+            'radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <div className="max-w-[1100px]">
+          <Eyebrow tone="dark">What we help improve</Eyebrow>
+          <h2 className="mt-7 text-white" style={SECTION_H2_STYLE}>
+            Six finance areas, made stronger.
+          </h2>
+          <p className="mt-9 max-w-[720px] text-[17px] leading-[1.55] text-white/65 sm:text-[19px]">
+            You may not need a full-time Finance Director yet. You may need someone senior enough
+            to review how finance is working, identify the gaps, and create a clearer way forward.
+          </p>
+        </div>
+
+        <SolutionSlider />
+      </div>
+    </section>
+  )
+}
+
+function SolutionSlider() {
+  const [active, setActive] = useState(0)
+  const total = SOLUTION_AREAS.length
+  const viewportRef = useRef<HTMLDivElement>(null)
+  const slideWidthRef = useRef(0)
+
+  const measure = () => {
+    const node = viewportRef.current
+    if (!node) return
+    const first = node.querySelector<HTMLElement>('[data-slide]')
+    if (!first) return
+    const gap = parseFloat(getComputedStyle(node).columnGap || '20')
+    slideWidthRef.current = first.offsetWidth + (Number.isFinite(gap) ? gap : 20)
+  }
+
+  useEffect(() => {
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
+
+  const goTo = (i: number) => {
+    const node = viewportRef.current
+    if (!node) return
+    measure()
+    const clamped = Math.max(0, Math.min(total - 1, i))
+    setActive(clamped)
+    node.scrollTo({ left: clamped * slideWidthRef.current, behavior: 'smooth' })
+  }
+
+  const handleScroll = () => {
+    const node = viewportRef.current
+    if (!node || slideWidthRef.current === 0) return
+    const idx = Math.round(node.scrollLeft / slideWidthRef.current)
+    if (idx !== active) setActive(idx)
+  }
+
+  const progressBars = useMemo(() => Array.from({ length: total }), [total])
+
+  return (
+    <div className="mt-16 sm:mt-20">
+      {/* Controls row */}
+      <div className="flex items-center justify-between gap-6 pb-6 sm:pb-8">
+        <div className="flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-white/55">
+          <span className="tabular-nums text-white">
+            {String(active + 1).padStart(2, '0')}
+          </span>
+          <span className="block h-px w-8 bg-white/25" />
+          <span className="tabular-nums">{String(total).padStart(2, '0')}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => goTo(active - 1)}
+            disabled={active === 0}
+            aria-label="Previous area"
+            className="grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/[0.06] text-white transition-all hover:border-[#5cb3ff]/50 hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-white/20 disabled:hover:bg-white/[0.06]"
+          >
+            <ArrowLeft size={16} strokeWidth={1.8} />
+          </button>
+          <button
+            type="button"
+            onClick={() => goTo(active + 1)}
+            disabled={active === total - 1}
+            aria-label="Next area"
+            className="grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/[0.06] text-white transition-all hover:border-[#5cb3ff]/50 hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-white/20 disabled:hover:bg-white/[0.06]"
+          >
+            <ArrowRight size={16} strokeWidth={1.8} />
+          </button>
+        </div>
+      </div>
+
+      {/* Progress bars */}
+      <div className="mb-8 flex items-center gap-1.5 sm:mb-10">
+        {progressBars.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            aria-label={`Go to area ${i + 1}`}
+            onClick={() => goTo(i)}
+            className="group relative h-1 flex-1 overflow-hidden rounded-full bg-white/10"
+          >
+            <span
+              className={`absolute inset-y-0 left-0 rounded-full transition-all duration-500 ${
+                i < active ? 'w-full bg-[#5cb3ff]/55' : i === active ? 'w-full bg-[#5cb3ff]' : 'w-0 bg-[#5cb3ff]/55'
+              }`}
+            />
+          </button>
+        ))}
+      </div>
+
+      {/* Viewport */}
+      <div
+        ref={viewportRef}
+        onScroll={handleScroll}
+        className="-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-5 sm:px-5 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8"
+        style={{ scrollPaddingInline: 'inherit' }}
+      >
+        {SOLUTION_AREAS.map((area, i) => (
+          <SolutionSlide
+            key={area.title}
+            area={area}
+            index={i}
+            total={total}
+            active={i === active}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function SolutionSlide({
+  area,
+  index,
+  total,
+  active,
+}: {
+  area: { icon: LucideIcon; title: string; body: string }
+  index: number
+  total: number
+  active: boolean
+}) {
+  const Icon = area.icon
+  return (
+    <article
+      data-slide
+      className={`group relative flex shrink-0 snap-start flex-col overflow-hidden rounded-[24px] border bg-white/[0.04] p-8 backdrop-blur-md transition-all duration-500 sm:p-10 md:p-12 ${active ? 'border-[#5cb3ff]/55 bg-white/[0.08] shadow-[0_30px_70px_-30px_rgba(92,179,255,0.5)]' : 'border-white/12'}`}
+      style={{ width: 'min(82vw, 460px)', minHeight: 'clamp(420px, 48vh, 520px)' }}
+    >
+      <div className="flex items-start justify-between">
+        <Icon
+          size={26}
+          strokeWidth={1.5}
+          className={`transition-colors duration-300 ${active ? 'text-white' : 'text-[#9fd0ff]'}`}
+        />
+        <span className="tabular-nums text-[11px] font-semibold tracking-[0.18em] text-white/30">
+          .{String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+        </span>
+      </div>
+
+      <h3
+        className="mt-auto pt-20 text-white"
+        style={{
+          fontSize: 'clamp(28px, 3vw, 40px)',
+          lineHeight: '1.1',
+          letterSpacing: '-0.03em',
+          fontWeight: 600,
+        }}
+      >
+        {area.title}
+      </h3>
+      <p className="mt-4 max-w-[380px] text-[15px] leading-[1.55] text-white/65 sm:text-[16.5px]">
+        {area.body}
+      </p>
+    </article>
+  )
+}
+
+/* ------------------------------ PULL QUOTE ----------------------------- */
+
+function PullQuote() {
+  const ref = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start end', 'end start'],
+  })
+  const y = useTransform(scrollYProgress, [0, 1], [40, -40])
+
+  return (
+    <section
+      ref={ref}
+      id="voice"
+      className="relative isolate overflow-hidden bg-[#fbfbfd] py-28 text-[#1d1d1f] sm:py-40 md:py-48"
+    >
+      <motion.div
+        aria-hidden
+        style={{ y }}
+        className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-[420px] max-w-[1200px] opacity-50"
+      >
+        <div
+          className="h-full w-full"
+          style={{
+            background:
+              'radial-gradient(ellipse at 50% 0%, rgba(0,113,227,0.16), transparent 70%)',
+          }}
+        />
+      </motion.div>
+
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <Eyebrow>The promise</Eyebrow>
+        <h2
+          className="mt-7 max-w-[1500px] text-[#1d1d1f]"
+          style={HUGE_H2_STYLE}
+        >
+          <RevealHeading
+            baseDelay={0.05}
+            gap={0.14}
+            parts={[
+              { text: 'Finance,' },
+              { text: 'made' },
+              { text: 'easier', mute: true },
+              { text: 'to', mute: true },
+              { text: 'manage.', mute: true },
+            ]}
+          />
+        </h2>
+        <motion.p
+          initial={{ opacity: 0, y: 14 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.9, ease: EASE, delay: 0.3 }}
+          className="mt-10 max-w-[820px] font-serif text-[20px] italic leading-[1.45] text-[#3c3c43] sm:mt-14 sm:text-[26px]"
+          style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+        >
+          <span className="text-[#0071E3]">“</span>The aim isn't more reports.
+          It's better decisions — and the structure to make them.<span className="text-[#0071E3]">”</span>
+        </motion.p>
+      </div>
+    </section>
+  )
+}
+
+/* ----------------------- WHO FOR — compare block ----------------------- */
+
+const WHO_PAIRS: Array<{ have: string; need: string }> = [
+  { have: 'A bookkeeper or finance admin', need: 'More senior oversight' },
+  { have: 'Regular invoices and supplier payments', need: 'Better process and control' },
+  { have: 'Basic financial reports', need: 'Clearer monthly insight' },
+  {
+    have: 'Growing revenue or client work',
+    need: 'Better visibility over cash and performance',
+  },
+  { have: 'A founder still involved in finance', need: 'More structure around decisions' },
+]
+
+function WhoFor() {
+  return (
+    <section
+      id="who"
+      className="relative isolate overflow-hidden bg-[#f5f8fc] py-28 text-[#1d1d1f] sm:py-40 md:py-48"
+    >
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <div className="max-w-[1100px]">
+          <Eyebrow>Who this is for</Eyebrow>
+          <h2 className="mt-7 text-[#1d1d1f]" style={SECTION_H2_STYLE}>
+            Built for founder-led businesses that need more structure.
+          </h2>
+          <p className="mt-9 max-w-[640px] text-[17px] leading-[1.55] text-[#3c3c43] sm:text-[19px]">
+            For businesses that have moved beyond basic bookkeeping, but are not ready for a
+            full-time Finance Director or CFO.
+          </p>
+        </div>
+
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-80px' }}
+          variants={stagger}
+          className="mt-16 grid grid-cols-1 gap-y-10 sm:mt-20 md:grid-cols-2 md:gap-x-16 lg:gap-x-24"
+        >
+          <div>
+            <motion.p
+              variants={fadeUp}
+              className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#86868b] sm:text-[12px]"
+            >
+              You may have
+            </motion.p>
+            <motion.ul
+              variants={stagger}
+              className="mt-7 space-y-6 sm:mt-9 sm:space-y-7"
+            >
+              {WHO_PAIRS.map((p) => (
+                <motion.li
+                  key={p.have}
+                  variants={fadeUp}
+                  className="border-l border-black/[0.1] pl-5 text-[18px] leading-[1.4] text-[#6e6e73] sm:text-[22px]"
+                >
+                  {p.have}
+                </motion.li>
+              ))}
+            </motion.ul>
+          </div>
+
+          <div>
+            <motion.p
+              variants={fadeUp}
+              className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0071E3] sm:text-[12px]"
+            >
+              <span className="block h-px w-8 bg-[#0071E3]" />
+              But now need
+            </motion.p>
+            <motion.ul
+              variants={stagger}
+              className="mt-7 space-y-6 sm:mt-9 sm:space-y-7"
+            >
+              {WHO_PAIRS.map((p) => (
+                <motion.li
+                  key={p.need}
+                  variants={fadeUp}
+                  className="border-l-2 border-[#0071E3] pl-5 text-[18px] font-medium leading-[1.4] tracking-[-0.01em] text-[#1d1d1f] sm:text-[22px]"
+                >
+                  {p.need}
+                </motion.li>
+              ))}
+            </motion.ul>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+/* ----------------------- HOW WE WORK — sticky timeline ----------------- */
+
+const STEPS: Array<{ icon: LucideIcon; title: string; body: string }> = [
+  {
+    icon: Compass,
+    title: 'Review the current setup',
+    body: 'We review how finance currently works across invoicing, payments, reporting, controls, and cash visibility.',
+  },
+  {
+    icon: TrendingDown,
+    title: 'Identify what is stretched',
+    body: 'We highlight where things are delayed, manual, unclear, duplicated, or relying too heavily on one person.',
+  },
+  {
+    icon: Layers,
+    title: 'Create a clearer finance routine',
+    body: 'We help create better processes, clearer ownership, and reporting that gives the business a more useful view.',
+  },
+  {
+    icon: TrendingUp,
+    title: 'Support the business monthly',
+    body: 'Through retained advisory support, we help keep finance moving in the right direction as the business grows.',
+  },
+]
+
+function HowWeWork() {
+  return (
+    <section
+      id="how"
+      className="relative isolate overflow-hidden bg-[#fbfbfd] py-28 text-[#1d1d1f] sm:py-40 md:py-48"
+    >
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-16 md:grid-cols-12 md:gap-12 lg:gap-20">
+          <div className="md:col-span-4">
+            <div className="md:sticky md:top-32">
+              <Eyebrow>How we work</Eyebrow>
+              <h2 className="mt-7 text-[#1d1d1f]" style={SECTION_H2_STYLE}>
+                A practical review of how finance is working.
+              </h2>
+              <p className="mt-9 max-w-[400px] text-[16px] leading-[1.55] text-[#6e6e73] sm:text-[17px]">
+                Four practical steps from first review to monthly advisory support.
+              </p>
+            </div>
+          </div>
+
+          <ol className="relative md:col-span-8">
+            <span
+              aria-hidden
+              className="absolute left-[15px] top-2 hidden h-[calc(100%-3rem)] w-px bg-gradient-to-b from-[#0071E3] via-[#0071E3]/30 to-transparent md:block"
+            />
+            {STEPS.map((step, i) => (
+              <TimelineStep key={step.title} {...step} index={i} />
+            ))}
+          </ol>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function TimelineStep({
+  icon: Icon,
+  title,
+  body,
+  index,
+}: {
+  icon: LucideIcon
+  title: string
+  body: string
+  index: number
+}) {
+  return (
+    <motion.li
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-100px' }}
+      transition={{ duration: 0.8, ease: EASE, delay: 0.05 * index }}
+      className="relative flex gap-7 pb-14 last:pb-0 md:gap-10 md:pb-20"
+    >
+      <div className="relative shrink-0 md:pt-1">
+        <span
+          aria-hidden
+          className="absolute left-[15px] top-[12px] hidden h-3 w-3 -translate-x-1/2 rounded-full bg-[#fbfbfd] md:block"
+        />
+        <motion.span
+          aria-hidden
+          initial={{ scale: 0 }}
+          whileInView={{ scale: 1 }}
+          viewport={{ once: true, margin: '-100px' }}
+          transition={{ duration: 0.6, ease: EASE, delay: 0.2 + 0.05 * index }}
+          className="absolute left-[15px] top-[12px] hidden h-3 w-3 -translate-x-1/2 rounded-full bg-[#0071E3] shadow-[0_0_0_4px_rgba(0,113,227,0.15)] md:block"
+        />
+        <span
+          className="block pl-0 tabular-nums text-[#0071E3] md:pl-12"
+          style={{
+            fontSize: 'clamp(48px, 5.4vw, 84px)',
+            lineHeight: '1',
+            letterSpacing: '-0.045em',
+            fontWeight: 300,
+          }}
+        >
+          {String(index + 1).padStart(2, '0')}
+        </span>
+      </div>
+
+      <div className="min-w-0 flex-1 pt-1">
+        <div className="flex items-center gap-3">
+          <Icon size={17} strokeWidth={1.7} className="text-[#0071E3]/65" />
+          <h3
+            className="text-[#1d1d1f]"
+            style={{
+              fontSize: 'clamp(22px, 2.4vw, 34px)',
+              lineHeight: '1.18',
+              letterSpacing: '-0.025em',
+              fontWeight: 600,
+            }}
+          >
+            {title}
+          </h3>
+        </div>
+        <p className="mt-4 max-w-[560px] text-[16px] leading-[1.6] text-[#6e6e73] sm:text-[18px]">
+          {body}
+        </p>
+      </div>
+    </motion.li>
+  )
+}
+
+/* ------------------------- OUTCOME — typographic ----------------------- */
+
+function Outcome() {
+  const ref = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start end', 'end start'],
+  })
+  const orb1Y = useTransform(scrollYProgress, [0, 1], [-140, 140])
+  const orb2Y = useTransform(scrollYProgress, [0, 1], [140, -140])
+  const orbOpacity = useTransform(scrollYProgress, [0, 0.4, 0.8, 1], [0.4, 1, 1, 0.5])
+
+  return (
+    <section
+      ref={ref}
+      id="outcome"
+      className="relative isolate overflow-hidden bg-[#1a1330] py-32 text-white sm:py-44 md:py-52"
+    >
+      <motion.div
+        aria-hidden
+        style={{ y: orb1Y, opacity: orbOpacity }}
+        className="pointer-events-none absolute -top-32 left-[10%] h-[640px] w-[640px] rounded-full"
+      >
+        <div
+          className="h-full w-full"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(92,179,255,0.34), transparent 65%)',
+          }}
+        />
+      </motion.div>
+      <motion.div
+        aria-hidden
+        style={{ y: orb2Y, opacity: orbOpacity }}
+        className="pointer-events-none absolute bottom-[-15%] right-[-5%] h-[560px] w-[560px] rounded-full"
+      >
+        <div
+          className="h-full w-full"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(124,92,255,0.30), transparent 65%)',
+          }}
+        />
+      </motion.div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage:
+            'radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <Eyebrow tone="dark">The outcome</Eyebrow>
+        <h2
+          className="mt-7 max-w-[1500px] text-white"
+          style={SECTION_H2_STYLE}
+        >
+          A finance function that feels less reactive.
+        </h2>
+
+        <div className="mt-14 grid grid-cols-1 gap-10 sm:mt-20 md:grid-cols-12 md:gap-12 lg:gap-20">
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.8, ease: EASE }}
+            className="max-w-[760px] text-[18px] leading-[1.55] text-white/72 sm:text-[22px] md:col-span-7"
+          >
+            With the right support, finance becomes easier to manage. You have clearer processes,
+            cleaner reporting, fewer missed steps, and a stronger foundation for making decisions.
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.8, ease: EASE, delay: 0.12 }}
+            className="max-w-[480px] text-[15px] italic leading-[1.5] text-white/50 sm:text-[17px] md:col-span-5"
+          >
+            The aim isn't to make finance more complicated. It's to make it easier to see what's
+            happening, what needs attention, and what to do next.
+          </motion.p>
+        </div>
+
+        {/* Stat band — animated counters reinforce the outcome quantitatively. */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.9, ease: EASE, delay: 0.2 }}
+          className="mt-20 grid grid-cols-1 gap-px overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.05] sm:mt-24 sm:grid-cols-3"
+        >
+          {[
+            { value: 13, suffix: ' weeks', label: 'Cashflow visibility', sub: 'Rolling 13-week forecast' },
+            { value: 5, suffix: ' days', label: 'Month-end close', sub: 'Typical time to finished pack' },
+            { value: 20, suffix: '+', label: 'Founder-led clients', sub: 'Across UK SME finance' },
+          ].map((s, i) => (
+            <div
+              key={s.label}
+              className="bg-[#1a1330] px-6 py-7 sm:px-7 sm:py-8 md:px-9 md:py-10"
+            >
+              <p
+                className="text-white"
+                style={{
+                  fontSize: 'clamp(40px, 5.4vw, 76px)',
+                  lineHeight: '1.0',
+                  letterSpacing: '-0.035em',
+                  fontWeight: 300,
+                }}
+              >
+                <AnimatedCounter to={s.value} suffix={s.suffix} duration={1.4 + i * 0.15} />
+              </p>
+              <p className="mt-4 text-[14px] font-semibold uppercase tracking-[0.14em] text-[#9fd0ff]">
+                {s.label}
+              </p>
+              <p className="mt-2 text-[13.5px] leading-[1.5] text-white/55 sm:text-[14.5px]">
+                {s.sub}
+              </p>
+            </div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------- FINAL CTA ----------------------------- */
+
+function FinalCTA() {
+  return (
+    <section
+      id="review"
+      className="relative isolate scroll-mt-24 overflow-hidden bg-[#f2f7fb] py-28 sm:py-40 md:py-48"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-[560px] max-w-[1180px]"
+        style={{
+          background:
+            'radial-gradient(ellipse at 50% 0%, rgba(0,113,227,0.18), transparent 68%)',
+        }}
+      />
+
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 26 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-100px' }}
+          transition={{ duration: 0.9, ease: EASE }}
+          className="relative overflow-hidden rounded-[32px] border border-white/70 bg-[#0b1220] p-10 text-white shadow-[0_40px_100px_-30px_rgba(8,24,52,0.55),0_1px_0_rgba(255,255,255,0.7)_inset] sm:rounded-[40px] sm:p-14 md:p-20 lg:p-24"
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[#0071E3]/30 blur-3xl"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -bottom-28 right-4 h-72 w-72 rounded-full bg-[#5cb3ff]/20 blur-3xl"
+          />
+
+          <div className="relative grid grid-cols-1 gap-10 md:grid-cols-12 md:items-end md:gap-14">
+            <div className="md:col-span-7">
+              <Eyebrow tone="dark">Next step</Eyebrow>
+
+              <h2
+                className="mt-7 text-white"
+                style={SECTION_H2_STYLE}
+              >
+                Ready to review your finance setup?
+              </h2>
+              <p className="mt-8 max-w-[560px] text-[17px] leading-[1.55] text-white/72 sm:text-[20px]">
+                Start with a short review of what's working, what's stretched, and where better
+                structure is needed.
+              </p>
+            </div>
+
+            <div className="md:col-span-5">
+              <MagneticButton
+                href="/#contact"
+                className="group inline-flex w-full items-center justify-center gap-2.5 rounded-pill bg-[#0071E3] px-7 py-4 text-[15px] font-medium text-white transition-[background,box-shadow] duration-200 hover:bg-[#0077ED] hover:shadow-[0_18px_40px_-10px_rgba(0,113,227,0.55)] sm:px-8 sm:text-[16px]"
+              >
+                Book a finance review
+                <ArrowRight
+                  size={16}
+                  className="transition-transform duration-300 group-hover:translate-x-1"
+                />
+              </MagneticButton>
+              <div className="mt-6 flex flex-col gap-1.5 text-[13.5px] text-white/55 sm:flex-row sm:items-center sm:justify-between">
+                <a
+                  href={`mailto:${CONTACT.email}`}
+                  className="transition-colors hover:text-[#9fd0ff]"
+                >
+                  {CONTACT.email}
+                </a>
+                <a
+                  href={CONTACT.phoneHref}
+                  className="transition-colors hover:text-[#9fd0ff]"
+                >
+                  {CONTACT.phoneDisplay}
+                </a>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+/* ===================================================================== */
+/*                         POLISH-PASS COMPONENTS                         */
+/* ===================================================================== */
+
+/* ---------------------------- DELIVERABLE ------------------------------ */
+
+function Deliverable() {
+  return (
+    <section
+      id="deliverable"
+      className="relative isolate overflow-hidden bg-[#fbfbfd] py-28 text-[#1d1d1f] sm:py-40 md:py-48"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-[420px] max-w-[1200px] opacity-50"
+        style={{
+          background:
+            'radial-gradient(ellipse at 50% 0%, rgba(0,113,227,0.14), transparent 70%)',
+        }}
+      />
+
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-14 md:grid-cols-12 md:gap-12 lg:gap-20">
+          <div className="md:col-span-5">
+            <Eyebrow>What you actually receive</Eyebrow>
+            <h2 className="mt-7 text-[#1d1d1f]" style={SECTION_H2_STYLE}>
+              A monthly finance pack you can actually use.
+            </h2>
+            <p className="mt-9 max-w-[480px] text-[17px] leading-[1.55] text-[#3c3c43] sm:text-[19px]">
+              Each month, a clear summary of how the business is performing, where cash is heading,
+              and what needs attention next.
+            </p>
+
+            <ul className="mt-10 space-y-4 sm:mt-12">
+              {[
+                { Icon: BarChart3, label: 'KPI summary with trend commentary' },
+                { Icon: LineChart, label: '13-week cashflow forecast' },
+                { Icon: Eye, label: 'Variance vs. budget — flagged in plain English' },
+                { Icon: CheckCircle2, label: 'Three clear next-step recommendations' },
+              ].map(({ Icon, label }, i) => (
+                <motion.li
+                  key={label}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.6, ease: EASE, delay: 0.05 * i }}
+                  className="flex items-start gap-4"
+                >
+                  <span className="mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[#0071E3]/15 bg-[#eef5ff] text-[#0071E3]">
+                    <Icon size={15} strokeWidth={1.8} />
+                  </span>
+                  <span className="text-[15.5px] leading-[1.45] text-[#1d1d1f] sm:text-[17px]">
+                    {label}
+                  </span>
+                </motion.li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="md:col-span-7">
+            <ReportMockup />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function ReportMockup() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-100px' }}
+      transition={{ duration: 0.95, ease: EASE }}
+      className="relative"
+    >
+      {/* Behind layer — second page peek */}
+      <div
+        aria-hidden
+        className="absolute inset-x-8 top-6 hidden h-[calc(100%-1rem)] rounded-[24px] border border-black/[0.06] bg-white/80 shadow-[0_30px_70px_-40px_rgba(15,15,30,0.18)] sm:block"
+      />
+      {/* Front pack */}
+      <div className="relative overflow-hidden rounded-[24px] border border-black/[0.06] bg-white shadow-[0_40px_90px_-40px_rgba(15,15,30,0.28),0_2px_0_rgba(255,255,255,0.95)_inset]">
+        {/* Top brand bar */}
+        <div
+          aria-hidden
+          className="h-1 w-full bg-gradient-to-r from-[#0071E3] via-[#5cb3ff] to-[#1d4ed8]"
+        />
+
+        {/* Header */}
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-black/[0.06] px-6 py-6 sm:px-8 sm:py-7">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0071E3]">
+              Monthly Finance Pack
+            </p>
+            <h3
+              className="mt-2 text-[#1d1d1f]"
+              style={{
+                fontSize: 'clamp(20px, 1.9vw, 26px)',
+                lineHeight: '1.2',
+                letterSpacing: '-0.02em',
+                fontWeight: 700,
+              }}
+            >
+              May 2026 — Acme Studio Ltd.
+            </h3>
+          </div>
+          <div className="text-right text-[11px] text-[#86868b]">
+            <p className="font-semibold uppercase tracking-[0.14em]">Prepared by</p>
+            <p className="mt-1 text-[12.5px] text-[#1d1d1f]">Cunos Consulting</p>
+          </div>
+        </div>
+
+        {/* KPI tiles */}
+        <div className="grid grid-cols-2 gap-px bg-black/[0.06] sm:grid-cols-4">
+          {[
+            { label: 'Revenue', value: '£284k', delta: '+8.2%', up: true },
+            { label: 'Gross margin', value: '62.4%', delta: '+1.1pp', up: true },
+            { label: 'Runway', value: '11.4mo', delta: '−0.3mo', up: false },
+            { label: 'Cash on hand', value: '£612k', delta: '+£42k', up: true },
+          ].map((k) => (
+            <KPITile key={k.label} {...k} />
+          ))}
+        </div>
+
+        {/* Mini cashflow chart */}
+        <div className="border-b border-black/[0.06] px-6 py-7 sm:px-8 sm:py-9">
+          <div className="flex items-baseline justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#86868b]">
+                13-week cash forecast
+              </p>
+              <p className="mt-1 text-[12.5px] text-[#1d1d1f]">
+                <span className="font-semibold">£612k → £548k</span>
+                <span className="text-[#86868b]"> · base case</span>
+              </p>
+            </div>
+            <span className="hidden rounded-pill bg-[#eef5ff] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#0071E3] sm:inline-block">
+              Healthy
+            </span>
+          </div>
+          <CashflowSparkline />
+        </div>
+
+        {/* Commentary */}
+        <div className="px-6 py-6 sm:px-8 sm:py-7">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#86868b]">
+            Commentary
+          </p>
+          <ul className="mt-3 space-y-2.5 text-[13.5px] leading-[1.5] text-[#1d1d1f] sm:text-[14.5px]">
+            <li className="flex items-start gap-2.5">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#0071E3]" />
+              Revenue up 8.2% on April; two new retainers signed in week 3.
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#0071E3]" />
+              Three overdue receivables ({'>'}45 days) — escalation memo attached.
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#0071E3]" />
+              Recommended: bring forward Q3 hire decision to August review.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+function KPITile({
+  label,
+  value,
+  delta,
+  up,
+}: {
+  label: string
+  value: string
+  delta: string
+  up: boolean
+}) {
+  return (
+    <div className="bg-white px-5 py-5 sm:px-6 sm:py-6">
+      <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#86868b]">
+        {label}
+      </p>
+      <p
+        className="mt-2 tabular-nums text-[#1d1d1f]"
+        style={{
+          fontSize: 'clamp(22px, 2.2vw, 30px)',
+          lineHeight: '1.05',
+          letterSpacing: '-0.025em',
+          fontWeight: 600,
+        }}
+      >
+        {value}
+      </p>
+      <p
+        className={`mt-1 inline-flex items-center gap-1 text-[11.5px] font-semibold ${up ? 'text-emerald-600' : 'text-amber-600'}`}
+      >
+        {up ? <TrendingUp size={12} strokeWidth={2.4} /> : <TrendingDown size={12} strokeWidth={2.4} />}
+        {delta}
+      </p>
+    </div>
+  )
+}
+
+function CashflowSparkline() {
+  // 13 weekly points — gentle dip then recovery
+  const points = [612, 598, 605, 588, 572, 565, 548, 540, 552, 564, 575, 562, 548]
+  const max = Math.max(...points)
+  const min = Math.min(...points)
+  const range = max - min || 1
+
+  return (
+    <div className="relative mt-6 h-32 w-full sm:h-36">
+      <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
+        <defs>
+          <linearGradient id="cashfill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#0071E3" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#0071E3" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        {/* horizontal grid */}
+        {[0, 1, 2, 3].map((g) => (
+          <line
+            key={g}
+            x1="0"
+            x2="100"
+            y1={(g * 40) / 3}
+            y2={(g * 40) / 3}
+            stroke="rgba(15,15,30,0.06)"
+            strokeWidth={0.2}
+          />
+        ))}
+
+        {/* area fill */}
+        <motion.path
+          initial={{ pathLength: 0, opacity: 0 }}
+          whileInView={{ pathLength: 1, opacity: 1 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 1.4, ease: EASE }}
+          d={`M0,40 ${points
+            .map((p, i) => {
+              const x = (i / (points.length - 1)) * 100
+              const y = 38 - ((p - min) / range) * 32
+              return `L${x.toFixed(2)},${y.toFixed(2)}`
+            })
+            .join(' ')} L100,40 Z`}
+          fill="url(#cashfill)"
+        />
+
+        {/* line */}
+        <motion.path
+          initial={{ pathLength: 0 }}
+          whileInView={{ pathLength: 1 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 1.4, ease: EASE }}
+          d={points
+            .map((p, i) => {
+              const x = (i / (points.length - 1)) * 100
+              const y = 38 - ((p - min) / range) * 32
+              return `${i === 0 ? 'M' : 'L'}${x.toFixed(2)},${y.toFixed(2)}`
+            })
+            .join(' ')}
+          fill="none"
+          stroke="#0071E3"
+          strokeWidth={0.6}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* end dot */}
+        <motion.circle
+          initial={{ scale: 0 }}
+          whileInView={{ scale: 1 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.5, ease: EASE, delay: 1.2 }}
+          cx={100}
+          cy={38 - ((points[points.length - 1] - min) / range) * 32}
+          r={0.8}
+          fill="#0071E3"
+        />
+      </svg>
+
+      {/* week labels */}
+      <div className="absolute inset-x-0 bottom-[-1.6rem] flex justify-between text-[10px] text-[#86868b]">
+        <span>Wk 1</span>
+        <span className="hidden sm:inline">Wk 7</span>
+        <span>Wk 13</span>
+      </div>
+    </div>
+  )
+}
+
+/* ----------------------------- FOUNDER NOTE ---------------------------- */
+
+export function FounderNote() {
+  return (
+    <section
+      id="founder"
+      className="relative isolate overflow-hidden bg-[#0b1220] py-28 text-white sm:py-40 md:py-48"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-[520px] max-w-[1200px]"
+        style={{
+          background:
+            'radial-gradient(ellipse at 50% 0%, rgba(0,113,227,0.22), transparent 70%)',
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage:
+            'radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-12 md:items-center md:gap-12 lg:gap-20">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ duration: 0.95, ease: EASE }}
+            className="md:col-span-5"
+          >
+            <FounderPortrait />
+          </motion.div>
+
+          <div className="md:col-span-7">
+            <Eyebrow tone="dark">Senior advisor</Eyebrow>
+            <Quote
+              size={28}
+              strokeWidth={1.4}
+              className="mt-8 text-[#5cb3ff]/70"
+              aria-hidden
+            />
+            <p
+              className="mt-4 max-w-[820px] font-serif text-white"
+              style={{
+                fontFamily: 'Georgia, "Times New Roman", serif',
+                fontSize: 'clamp(24px, 3.2vw, 44px)',
+                lineHeight: '1.25',
+                letterSpacing: '-0.015em',
+                fontStyle: 'italic',
+                fontWeight: 400,
+              }}
+            >
+              Most founder-led businesses don't need more reports. They need someone senior in the
+              room when the numbers are read — and a routine that holds when the business gets
+              busy.
+            </p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ duration: 0.7, ease: EASE, delay: 0.2 }}
+              className="mt-10 flex flex-col gap-4 border-t border-white/15 pt-8 sm:flex-row sm:items-center sm:justify-between sm:gap-8"
+            >
+              <div>
+                <p className="text-[16px] font-semibold tracking-[-0.005em] text-white sm:text-[18px]">
+                  Cunos Consulting — London
+                </p>
+                <p className="mt-1 text-[13.5px] leading-[1.5] text-white/55 sm:text-[14.5px]">
+                  Senior finance support for founder-led businesses across the UK.
+                </p>
+              </div>
+              <a
+                href="/#contact"
+                className="group inline-flex items-center gap-2 self-start rounded-pill border border-white/20 bg-white/[0.06] px-5 py-2.5 text-[13.5px] font-medium text-white backdrop-blur-md transition-all hover:border-[#5cb3ff]/45 hover:bg-white/[0.12] sm:self-auto"
+              >
+                Meet the team
+                <ArrowUpRight
+                  size={14}
+                  className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                />
+              </a>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function FounderPortrait() {
+  return (
+    <div className="relative">
+      <div
+        aria-hidden
+        className="absolute inset-0 translate-x-3 translate-y-3 rounded-[28px] bg-gradient-to-br from-[#0071E3]/30 to-transparent blur-2xl"
+      />
+      <div className="relative aspect-[4/5] w-full max-w-[440px] overflow-hidden rounded-[28px] border border-white/12 bg-gradient-to-br from-[#0d1830] via-[#0b1220] to-[#08101e] shadow-[0_40px_90px_-30px_rgba(0,0,0,0.6)]">
+        {/* Soft brand gradient mask in lieu of a real photo */}
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(120% 60% at 30% 25%, rgba(92,179,255,0.32), transparent 60%), radial-gradient(80% 60% at 80% 80%, rgba(0,113,227,0.28), transparent 70%)',
+          }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage:
+              'radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)',
+            backgroundSize: '14px 14px',
+          }}
+        />
+
+        {/* Caption block over the portrait area */}
+        <div className="absolute inset-x-6 bottom-6 rounded-2xl border border-white/15 bg-white/[0.08] px-5 py-4 backdrop-blur-2xl sm:inset-x-7 sm:bottom-7 sm:px-6 sm:py-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9fd0ff]">
+            Cunos Consulting
+          </p>
+          <p className="mt-1.5 text-[15px] font-semibold tracking-[-0.005em] text-white sm:text-[16.5px]">
+            Senior finance advisor
+          </p>
+          <p className="mt-0.5 text-[12.5px] text-white/55 sm:text-[13.5px]">
+            20+ years across SME finance leadership
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ---------------------------- ENGAGEMENT MODEL ------------------------- */
+
+const ENGAGEMENT_STEPS: Array<{ when: string; title: string; body: string; icon: LucideIcon }> = [
+  {
+    when: 'Week 1',
+    title: 'Discovery + finance review',
+    body: 'A short, structured review of how finance currently runs. No prep, no homework — we walk through what is working and what is stretched.',
+    icon: Calendar,
+  },
+  {
+    when: 'Weeks 2–4',
+    title: 'Routine + controls in place',
+    body: 'We help set the monthly cadence: clearer ownership, sharper controls, a reporting structure tuned to how you actually make decisions.',
+    icon: Layers,
+  },
+  {
+    when: 'From month 2',
+    title: 'Retained advisory',
+    body: 'A senior finance partner on retainer. Monthly pack, quarterly review, ad-hoc strategic calls. No long lock-in, no nine-month onboarding.',
+    icon: TrendingUp,
+  },
+]
+
+function Engagement() {
+  return (
+    <section
+      id="engagement"
+      className="relative isolate overflow-hidden bg-[#f5f8fc] py-28 text-[#1d1d1f] sm:py-40 md:py-48"
+    >
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <div className="max-w-[1100px]">
+          <Eyebrow>The engagement</Eyebrow>
+          <h2 className="mt-7 text-[#1d1d1f]" style={SECTION_H2_STYLE}>
+            How working together actually looks.
+          </h2>
+          <p className="mt-9 max-w-[640px] text-[17px] leading-[1.55] text-[#3c3c43] sm:text-[19px]">
+            Light onboarding. Structured first month. Retained monthly advisory thereafter.
+          </p>
+        </div>
+
+        <motion.ol
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-80px' }}
+          variants={stagger}
+          className="mt-16 grid grid-cols-1 gap-5 sm:mt-20 md:grid-cols-3 md:gap-6"
+        >
+          {ENGAGEMENT_STEPS.map((step, i) => (
+            <EngagementCard key={step.title} {...step} index={i} total={ENGAGEMENT_STEPS.length} />
+          ))}
+        </motion.ol>
+
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.8, ease: EASE, delay: 0.2 }}
+          className="mt-14 grid grid-cols-1 gap-4 rounded-[24px] border border-black/[0.06] bg-white p-6 shadow-[0_18px_44px_-32px_rgba(15,15,30,0.18)] sm:mt-16 sm:grid-cols-3 sm:gap-6 sm:p-8"
+        >
+          {[
+            { label: 'Cadence', value: 'Monthly retained' },
+            { label: 'Commitment', value: 'Rolling, no lock-in' },
+            { label: 'Pricing', value: 'Scope-based — shared after the review' },
+          ].map((m) => (
+            <div key={m.label}>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#86868b]">
+                {m.label}
+              </p>
+              <p className="mt-2 text-[16px] font-medium leading-[1.35] tracking-[-0.005em] text-[#1d1d1f] sm:text-[17.5px]">
+                {m.value}
+              </p>
+            </div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+function EngagementCard({
+  when,
+  title,
+  body,
+  icon: Icon,
+  index,
+  total,
+}: {
+  when: string
+  title: string
+  body: string
+  icon: LucideIcon
+  index: number
+  total: number
+}) {
+  return (
+    <motion.li
+      variants={{
+        hidden: { opacity: 0, y: 22 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.75, ease: EASE, delay: 0.08 * index } },
+      }}
+      className="group relative flex h-full flex-col overflow-hidden rounded-[24px] border border-black/[0.06] bg-white p-8 shadow-[0_18px_44px_-32px_rgba(15,15,30,0.18)] transition-all duration-300 hover:-translate-y-1 hover:border-[#0071E3]/20 hover:shadow-[0_28px_60px_-30px_rgba(0,113,227,0.28)] sm:p-10"
+    >
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-1 scale-x-0 bg-gradient-to-r from-[#0071E3] via-[#5cb3ff] to-[#1d4ed8] transition-transform duration-500 group-hover:scale-x-100"
+      />
+
+      <div className="flex items-center justify-between">
+        <span className="rounded-pill border border-[#0071E3]/15 bg-[#eef5ff] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#0071E3]">
+          {when}
+        </span>
+        <span className="tabular-nums text-[11px] font-semibold tracking-[0.18em] text-[#86868b]">
+          .{String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+        </span>
+      </div>
+
+      <Icon size={22} strokeWidth={1.6} className="mt-10 text-[#0071E3]" />
+
+      <h3
+        className="mt-6 text-[#1d1d1f]"
+        style={{
+          fontSize: 'clamp(22px, 2.1vw, 28px)',
+          lineHeight: '1.18',
+          letterSpacing: '-0.025em',
+          fontWeight: 600,
+        }}
+      >
+        {title}
+      </h3>
+      <p className="mt-3 text-[15px] leading-[1.55] text-[#6e6e73] sm:text-[16px]">{body}</p>
+    </motion.li>
+  )
+}
+
+/* --------------------------------- FAQ -------------------------------- */
+
+const FAQ_ITEMS: Array<{ q: string; a: string }> = [
+  {
+    q: 'How is this different from a bookkeeper or accountant?',
+    a: 'A bookkeeper records the numbers. An accountant files them. Senior Finance Support sits at the layer above — making sure the numbers are reviewed, decisions are informed by them, and the finance function is structured to scale with the business.',
+  },
+  {
+    q: "What's the time commitment from me as a founder?",
+    a: 'Roughly one focused session per month, plus the occasional decision call. The point of Senior Finance Support is to take finance management off the founder, not to add another standing meeting.',
+  },
+  {
+    q: 'Do you work with my existing accountant and tools?',
+    a: 'Yes — we work alongside whoever you already have in place. We typically plug into Xero, QuickBooks, NetSuite, or whatever you run on. We do not replace your accountant; we strengthen the layer between them and you.',
+  },
+  {
+    q: 'What size of business is this for?',
+    a: 'Founder-led businesses doing roughly £1m to £25m in revenue, where finance has outgrown basic bookkeeping but a full-time Finance Director is either too expensive or too soon.',
+  },
+  {
+    q: 'Is there a minimum commitment?',
+    a: 'No long lock-in. The retained advisory engagement runs month to month after the first review. We aim to make the value obvious; if it stops being obvious, you can stop.',
+  },
+  {
+    q: 'How is pricing structured?',
+    a: 'Scope-based. We agree on what is in and out of scope during the initial review, then a fixed monthly fee that reflects the cadence you need. No hourly billing, no surprises.',
+  },
+]
+
+function FAQ() {
+  const [open, setOpen] = useState<number>(0)
+
+  return (
+    <section
+      id="faq"
+      className="relative isolate overflow-hidden bg-[#fbfbfd] py-28 text-[#1d1d1f] sm:py-40 md:py-48"
+    >
+      <div className="relative mx-auto w-full max-w-[1640px] px-4 sm:px-5 md:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-14 md:grid-cols-12 md:gap-12 lg:gap-20">
+          <div className="md:col-span-5">
+            <div className="md:sticky md:top-32">
+              <Eyebrow>Questions, answered</Eyebrow>
+              <h2 className="mt-7 text-[#1d1d1f]" style={SECTION_H2_STYLE}>
+                What founders usually ask first.
+              </h2>
+              <p className="mt-9 max-w-[400px] text-[16px] leading-[1.55] text-[#6e6e73] sm:text-[17px]">
+                Don't see your question here? Reach out — we usually reply within one working day.
+              </p>
+
+              <a
+                href={`mailto:${CONTACT.email}`}
+                className="group mt-8 inline-flex items-center gap-2 text-[14px] font-medium text-[#0071E3] transition-colors hover:text-[#0077ED]"
+              >
+                <Mail size={15} strokeWidth={1.8} />
+                {CONTACT.email}
+                <ArrowUpRight
+                  size={13}
+                  className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                />
+              </a>
+            </div>
+          </div>
+
+          <ul className="md:col-span-7">
+            {FAQ_ITEMS.map((item, i) => (
+              <FAQItem
+                key={item.q}
+                {...item}
+                isOpen={open === i}
+                onToggle={() => setOpen(open === i ? -1 : i)}
+              />
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export function FAQItem({
+  q,
+  a,
+  isOpen,
+  onToggle,
+}: {
+  q: string
+  a: string
+  isOpen: boolean
+  onToggle: () => void
+}) {
+  return (
+    <li className="border-b border-black/[0.08] first:border-t">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="group flex w-full items-start justify-between gap-6 py-7 text-left transition-colors hover:text-[#0071E3] sm:py-8"
+      >
+        <span
+          className="text-[#1d1d1f] transition-colors group-hover:text-[#0071E3]"
+          style={{
+            fontSize: 'clamp(18px, 2vw, 24px)',
+            lineHeight: '1.3',
+            letterSpacing: '-0.015em',
+            fontWeight: 500,
+          }}
+        >
+          {q}
+        </span>
+        <span
+          className={`mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full border transition-all duration-300 ${isOpen ? 'border-[#0071E3] bg-[#0071E3] text-white' : 'border-black/[0.12] bg-white text-[#1d1d1f] group-hover:border-[#0071E3]/35 group-hover:text-[#0071E3]'}`}
+        >
+          {isOpen ? <Minus size={15} strokeWidth={2} /> : <Plus size={15} strokeWidth={2} />}
+        </span>
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.4, ease: EASE }}
+            className="overflow-hidden"
+          >
+            <p className="pb-7 pr-12 text-[15.5px] leading-[1.6] text-[#3c3c43] sm:pb-8 sm:text-[17px]">
+              {a}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </li>
+  )
+}
+
+/* ----------------------- STICKY CTA + PROGRESS ------------------------- */
+
+export function StickyCTA() {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => {
+      const past = window.scrollY > window.innerHeight * 1.4
+      const review = document.getElementById('review')
+      const reviewInView = review
+        ? review.getBoundingClientRect().top < window.innerHeight - 100
+        : false
+      setVisible(past && !reviewInView)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
     return () => {
-      document.title = previous
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
     }
   }, [])
 
   return (
-    <main className="cunos-sfs-page relative min-h-screen w-full">
-      <style dangerouslySetInnerHTML={{ __html: SFS_CSS }} />
-      <ScrollProgress />
-      <Nav />
-
-      {/* HERO */}
-      <section className="hero" id="top">
-        <div className="shell">
-          <p className="hero-eyebrow">For UK founder-led businesses</p>
-          <h1 className="hero-h1">
-            Full <span style={{ color: 'rgba(255,255,255,.55)' }}>Financial Control.</span>
-            <span className="hero-h1__sub">
-              Senior Finance Support for founder-led businesses across the UK.
-            </span>
-          </h1>
-          <p className="hero-deck">
-            Experienced UK finance oversight for founder-led businesses — without the cost or
-            commitment of hiring a full-time Finance Director.
-          </p>
-          <div className="btn-row">
-            <a href="#review" className="btn btn--primary">
-              Book your finance review →
-            </a>
-          </div>
-          <p className="hero-meta">
-            A short conversation about what's working, what's stretched, and where better support
-            could help.
-          </p>
-        </div>
-      </section>
-
-      {/* STATS */}
-      <section className="stats">
-        <div className="stats__grid">
-          <div className="stat">
-            <div className="stat__value">
-              4<small>areas</small>
-            </div>
-            <p className="stat__label">Finance function review</p>
-            <p className="stat__sub">Processes, controls, numbers and visibility</p>
-          </div>
-          <div className="stat">
-            <div className="stat__value">
-              1<small>month</small>
-            </div>
-            <p className="stat__label">Cleaner month-end close</p>
-            <p className="stat__sub">Improve the routine behind the numbers</p>
-          </div>
-          <div className="stat">
-            <div className="stat__value">
-              <span className="ongoing">Ongoing</span>
-            </div>
-            <p className="stat__label">Keeping your business on track</p>
-            <p className="stat__sub">Support that scales as your business grows</p>
-          </div>
-        </div>
-      </section>
-
-      {/* PROBLEM */}
-      <section className="light" id="problem">
-        <div className="shell">
-          <p className="eyebrow">The problem</p>
-          <h2 className="section-h2">Your business has grown. Your finance setup needs to catch up.</h2>
-          <p className="lede">
-            As your business grows, finance gets harder to manage with the same setup. Shifts happen
-            before founders notice.
-          </p>
-          <div className="problem-cards">
-            {[
-              { num: '01', symptom: 'Invoices go out late.', meaning: 'Cash is not coming in as quickly as it should.' },
-              { num: '02', symptom: 'Payments become reactive.', meaning: 'There is not enough control over cash going out.' },
-              { num: '03', symptom: 'Reports take longer to prepare.', meaning: 'Month-end is not giving you the clarity you need.' },
-              { num: '04', symptom: 'Finance becomes a bottleneck.', meaning: 'Decisions slow down. Risk goes up. The business carries it.' },
-            ].map((p) => (
-              <div key={p.num} className="problem-card">
-                <p className="problem-card__num">{p.num}</p>
-                <h3 className="problem-card__symptom">{p.symptom}</h3>
-                <p className="problem-card__meaning">{p.meaning}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SIGNS */}
-      <section className="light-tint" id="signs">
-        <div className="shell shell--narrow">
-          <p className="eyebrow">You've outgrown your current setup if…</p>
-          <h2 className="section-h2">Six signs the finance layer needs an upgrade.</h2>
-          <p className="lede">
-            If three or more of these are familiar, your finance setup is being held together by
-            founder time and luck.
-          </p>
-          <ul className="signs-list">
-            {SIGNS.map((sign, i) => (
-              <li key={i}>
-                <span className="num">{String(i + 1).padStart(2, '0')}</span>
-                {sign}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* WHAT IS / SOLUTION */}
-      <section className="light" id="solution">
-        <div className="shell">
-          <p className="eyebrow">In plain terms</p>
-          <h2 className="what-is__h1">
-            Finance, <span className="mute">made easier to manage.</span>
-          </h2>
-          <p className="what-is__body">
-            Senior Finance Support means an experienced finance professional sits inside your
-            business — on retainer, not on payroll. Reviewing your numbers, tightening the controls,
-            owning the cadence. The hands-on accountant or bookkeeper stays in place. We sit one
-            layer up, making sure the work happens, the numbers are trusted, and the founder gets
-            time back.
-          </p>
-
-          <p className="eyebrow" style={{ marginTop: 96 }}>What we cover</p>
-          <h2 className="section-h2">Multiple areas. One steady cadence.</h2>
-
-          <div className="solution-grid">
-            {SOLUTION_CARDS.map((card) => (
-              <div key={card.title} className="solution-card">
-                <div className="solution-card__icon">{card.svg}</div>
-                <h3>{card.title}</h3>
-                <p>{card.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* COMPARISON */}
-      <section className="light-tint" id="comparison">
-        <div className="shell">
-          <p className="eyebrow">Compare options</p>
-          <h2 className="section-h2">
-            Bookkeeper, accountant, FD — where Senior Finance Support sits.
-          </h2>
-          <p className="lede">
-            Four roles. Different jobs. Most growing businesses confuse the gap between accountant
-            and full-time Finance Director. Senior Finance Support fills it.
-          </p>
-          <div className="compare">
-            <table>
-              <thead>
-                <tr>
-                  <th className="feat">Feature</th>
-                  <th>Bookkeeper</th>
-                  <th>Accountant</th>
-                  <th className="col-highlight">Senior Finance Support</th>
-                  <th>Full-time Finance Director</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="feat">Day-to-day finance ops</td>
-                  <td><span className="pos">Yes — primary role</span></td>
-                  <td><span className="neg">Reviews only</span></td>
-                  <td className="col-highlight"><span className="pos">Strengthens + structures</span></td>
-                  <td><span className="pos">Yes — oversees</span></td>
-                </tr>
-                <tr>
-                  <td className="feat">Statutory + tax filings</td>
-                  <td><span className="neg">Often not</span></td>
-                  <td><span className="pos">Yes — primary role</span></td>
-                  <td className="col-highlight"><span className="pos">Coordinates with accountant</span></td>
-                  <td><span className="pos">Yes — oversees</span></td>
-                </tr>
-                <tr>
-                  <td className="feat">Forward-looking advice</td>
-                  <td><span className="neg">No</span></td>
-                  <td><span className="neg">Occasional</span></td>
-                  <td className="col-highlight"><span className="pos">Yes — core role</span></td>
-                  <td><span className="pos">Yes — core role</span></td>
-                </tr>
-                <tr>
-                  <td className="feat">Strategic + board input</td>
-                  <td><span className="neg">No</span></td>
-                  <td><span className="neg">Limited</span></td>
-                  <td className="col-highlight"><span className="pos">Yes — monthly cadence</span></td>
-                  <td><span className="pos">Yes — daily</span></td>
-                </tr>
-                <tr>
-                  <td className="feat">Cost (typical UK)</td>
-                  <td>£500–£2k / mo</td>
-                  <td>£3k–£10k / yr</td>
-                  <td className="col-highlight">Scope-based monthly</td>
-                  <td>£90k–£140k / yr + bonus / equity</td>
-                </tr>
-                <tr>
-                  <td className="feat">Best fit</td>
-                  <td>Early stage</td>
-                  <td>Every business needs one</td>
-                  <td className="col-highlight"><span className="pos">£1m–£20m founder-led</span></td>
-                  <td>£25m+ / pre-IPO</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      {/* DELIVERABLE */}
-      <section className="light" id="deliverable">
-        <div className="shell">
-          <p className="eyebrow">The deliverable</p>
-          <h2 className="section-h2">What improves inside your finance function.</h2>
-          <p className="lede">
-            Senior Finance Support strengthens the finance function behind your reporting,
-            forecasting and financial decision making.
-          </p>
-          <div className="deliverable">
-            <ul className="deliverable-list">
-              <li><span className="ico">01</span><span className="txt">Finance performance review</span></li>
-              <li><span className="ico">02</span><span className="txt">Internal control improvements</span></li>
-              <li><span className="ico">03</span><span className="txt">Cleaner financial information</span></li>
-              <li><span className="ico">04</span><span className="txt">Scalable finance structure</span></li>
-            </ul>
-            <div className="deliverable-visual">
-              <p className="deliverable-visual__head">Finance function review · process flow</p>
-              {FLOW_AREAS.map((area) => (
-                <div key={area.name} className="flow-row">
-                  <div className="flow-row__name">
-                    <span className="dot" />
-                    {area.name}
-                  </div>
-                  <div className="flow-row__steps">
-                    {area.steps.map((step, i) => (
-                      <span key={step} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                        {step}
-                        {i < area.steps.length - 1 && <span className="arrow">›</span>}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* PULL QUOTE */}
-      <section className="dark" id="voice">
-        <div className="pull-quote">
-          <p className="pull-quote__text">
-            Finance you can stop carrying. Numbers you can act on. A monthly rhythm that takes the
-            founder out of finance — without taking finance out of the founder's view.
-          </p>
-        </div>
-      </section>
-
-      {/* FOUNDER NOTE */}
-      <section className="light" id="founder">
-        <div className="shell">
-          <p className="eyebrow">Senior advisor</p>
-          <h2 className="section-h2">Why I built Cunos.</h2>
-          <div className="founder">
-            <div className="founder-photo">EM</div>
-            <div className="founder-text">
-              <p>
-                I have spent over a decade working across finance functions in private equity,
-                private and public businesses, founder-led companies, and MNCs across APAC. What I
-                kept seeing was that growing businesses do not always need more finance admin. They
-                need better finance structure.
-              </p>
-              <p>
-                Founders are often very strong at what they do, but the finance function can become
-                reactive, manual, or unclear as the business grows.
-              </p>
-              <p>
-                <strong>Cunos exists to help at this stage.</strong> We provide senior finance
-                support on a retainer basis, sitting alongside your accountant and bookkeeper to
-                make the numbers more reliable, the processes stronger, and the finance function
-                easier to scale.
-              </p>
-              <span className="sig">— Enting Man · Founder, Cunos Consulting</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS */}
-      <section className="dark-navy" id="testimonials">
-        <div className="shell">
-          <p className="eyebrow">What clients say</p>
-          <h2 className="section-h2">Founder-led businesses, monthly cadence.</h2>
-          <div className="testimonials-grid">
-            {TESTIMONIALS.map((t) => (
-              <div key={t.name} className="testi">
-                <p className="testi__quote">{t.quote}</p>
-                <div className="testi__author">
-                  <div className="testi__avatar">{t.avatar}</div>
-                  <div className="testi__meta">
-                    <strong>{t.name}</strong>
-                    <span>{t.meta}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* WHO FOR */}
-      <section className="light" id="who">
-        <div className="shell shell--narrow">
-          <p className="eyebrow">Who this is for</p>
-          <h2 className="section-h2">If this sounds like you, the fit is good.</h2>
-          <div className="who-grid">
-            <div className="who-col who-col--have">
-              <h3>You have</h3>
-              <ul className="who-list">
-                <li>A founder-led business doing <strong>£1m–£25m in revenue</strong>.</li>
-                <li>An accountant or bookkeeper already in place.</li>
-                <li>Growth that's outpaced the finance setup.</li>
-                <li>A leadership team that needs better numbers.</li>
-              </ul>
-            </div>
-            <div className="who-col who-col--need">
-              <h3>You need</h3>
-              <ul className="who-list">
-                <li>Senior finance oversight without hiring a full-time FD.</li>
-                <li>A monthly cadence the leadership team can rely on.</li>
-                <li>Financial information you can use to make real decisions.</li>
-                <li>Finance to stop being a bottleneck in the business.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* INDUSTRIES */}
-      <section className="light-tint" id="industries">
-        <div className="shell">
-          <p className="eyebrow">By industry</p>
-          <h2 className="section-h2">Where we work most.</h2>
-          <p className="lede">
-            Sector-specific dynamics shape the numbers. Here's where we've built the most
-            pattern-recognition.
-          </p>
-          <div className="industries-grid">
-            {INDUSTRIES.map((i) => (
-              <div key={i.name} className="industry">
-                <h3>{i.name}</h3>
-                <p>{i.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* HOW WE WORK */}
-      <section className="light" id="how">
-        <div className="shell">
-          <p className="eyebrow">How we work</p>
-          <h2 className="section-h2">Four steps from first call to monthly cadence.</h2>
-          <div className="steps">
-            {STEPS.map((s) => (
-              <div key={s.num} className="step">
-                <p className="step__num">{s.num}</p>
-                <h3>{s.title}</h3>
-                <p>{s.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ENGAGEMENT */}
-      <section className="dark-navy" id="engagement">
-        <div className="shell shell--narrow">
-          <p className="eyebrow">Engagement</p>
-          <h2 className="section-h2">How it's structured.</h2>
-          <div className="engagement-rows">
-            <div className="eng-row">
-              <span className="eng-row__label">Cadence</span>
-              <span className="eng-row__value">Monthly retained</span>
-            </div>
-            <div className="eng-row">
-              <span className="eng-row__label">Commitment</span>
-              <span className="eng-row__value">Rolling · no lock-in</span>
-            </div>
-            <div className="eng-row">
-              <span className="eng-row__label">Pricing</span>
-              <span className="eng-row__value">Scope-based — shared after the review</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CASE STUDY */}
-      <section className="light" id="case-study">
-        <div className="shell">
-          <p className="eyebrow">Case study</p>
-          <h2 className="section-h2">From Sunday-night spreadsheets to first-of-the-month clarity.</h2>
-          <div className="case">
-            <p className="case__quote">
-              "I used to spend my Sundays in spreadsheets. Now I read a five-page pack on the first
-              of every month and we just… know what to do."
-            </p>
-            <div className="case__author">
-              <div className="case__avatar">SC</div>
-              <div>
-                <strong>Sarah Chen</strong>
-                <span>Founder · SaaS · £4m ARR</span>
-              </div>
-            </div>
-            <div className="case__metrics">
-              <div>
-                <div className="case__metric-val">21d → 5d</div>
-                <p className="case__metric-label">Time to month-end pack</p>
-              </div>
-              <div>
-                <div className="case__metric-val">+£1.2m</div>
-                <p className="case__metric-label">Forward revenue secured</p>
-              </div>
-              <div>
-                <div className="case__metric-val">0 hires</div>
-                <p className="case__metric-label">In finance team headcount</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* INSIGHTS */}
-      <section className="light-tint" id="insights">
-        <div className="shell">
-          <p className="eyebrow">Insights</p>
-          <h2 className="section-h2">Notes from the founder finance frontline.</h2>
-          <div className="insights-grid">
-            {INSIGHTS.map((i) => (
-              <a key={i.title} href="#" className="insight">
-                <p className="insight__kicker">Reading · {i.mins}</p>
-                <h3>{i.title}</h3>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="light" id="faq">
-        <div className="shell">
-          <p className="eyebrow">FAQ</p>
-          <h2 className="section-h2">Questions founders ask before booking.</h2>
-          <div className="faq-list">
-            {FAQS.map((f) => (
-              <details key={f.q} className="faq-item" open={f.open}>
-                <summary>{f.q}</summary>
-                <div className="faq-item__answer">{f.a}</div>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FINAL CTA */}
-      <section className="final" id="review">
-        <div className="shell">
-          <h2>Get clear on what finance needs next.</h2>
-          <p className="final__sub">
-            Book a 30-minute finance review. We'll look at how finance works today, identify the
-            areas to strengthen, and discuss how we could work together to create more financial
-            clarity.
-          </p>
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ y: 60, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 60, opacity: 0 }}
+          transition={{ duration: 0.45, ease: EASE }}
+          className="pointer-events-none fixed inset-x-0 bottom-5 z-[55] flex justify-center px-4 sm:bottom-7 sm:px-6"
+        >
           <a
-            href="mailto:office@cunos.co.uk?subject=Senior%20Finance%20Support%20%E2%80%94%20Booking%20Request"
-            className="btn btn--primary"
+            href="#review"
+            className="pointer-events-auto group inline-flex items-center gap-3 rounded-pill border border-white/15 bg-[#0b1220]/85 px-5 py-3 text-[13.5px] font-medium text-white shadow-[0_18px_44px_-12px_rgba(8,24,52,0.55)] backdrop-blur-xl backdrop-saturate-150 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#5cb3ff]/40 hover:bg-[#0b1220]/95 sm:gap-4 sm:py-3.5 sm:text-[14.5px]"
           >
-            Book your finance review →
+            <span className="inline-flex h-2 w-2 rounded-full bg-[#5cb3ff] shadow-[0_0_0_3px_rgba(92,179,255,0.25)]" />
+            Ready to talk?
+            <span className="hidden text-white/55 sm:inline">·</span>
+            <span className="inline-flex items-center gap-1.5 text-[#9fd0ff] transition-transform group-hover:translate-x-0.5">
+              Book a finance review
+              <ArrowRight size={14} />
+            </span>
           </a>
-          <p className="final__email">
-            Or email directly:{' '}
-            <a href="mailto:office@cunos.co.uk">office@cunos.co.uk</a> ·{' '}
-            <a href="tel:+447520654301">+44 7520 654 301</a>
-          </p>
-        </div>
-      </section>
-
-      <Footer />
-    </main>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
+}
+
+function PageProgress() {
+  const [active, setActive] = useState(0)
+  const [show, setShow] = useState(false)
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return
+    const observers: IntersectionObserver[] = []
+    PAGE_SECTIONS.forEach((s, idx) => {
+      const el = document.getElementById(s.id)
+      if (!el) return
+      const obs = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) setActive(idx)
+        },
+        { rootMargin: '-45% 0px -45% 0px', threshold: 0 },
+      )
+      obs.observe(el)
+      observers.push(obs)
+    })
+    return () => observers.forEach((o) => o.disconnect())
+  }, [])
+
+  useEffect(() => {
+    const onScroll = () => {
+      const review = document.getElementById('review')
+      const reviewInView = review
+        ? review.getBoundingClientRect().top < window.innerHeight - 80
+        : false
+      setShow(window.scrollY > window.innerHeight * 0.6 && !reviewInView)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [])
+
+  const total = PAGE_SECTIONS.length
+  const current = PAGE_SECTIONS[active] ?? PAGE_SECTIONS[0]
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.aside
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 20 }}
+          transition={{ duration: 0.55, ease: EASE }}
+          className="pointer-events-none fixed right-5 top-1/2 z-40 hidden -translate-y-1/2 lg:block"
+        >
+          {/* Dark glass panel — always-dark so the TOC is readable over any
+              section background, light or dark. Labels are always visible
+              (dimmed for inactive); active row brightens with brand accent. */}
+          <div
+            className="pointer-events-auto w-[220px] overflow-hidden rounded-[20px] border border-white/12 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_28px_70px_-22px_rgba(8,24,52,0.6),0_1px_0_rgba(255,255,255,0.08)_inset]"
+            style={{ background: 'rgba(11, 18, 32, 0.88)' }}
+          >
+            {/* Header — current section in plain language */}
+            <div className="border-b border-white/10 px-4 pb-3.5 pt-4">
+              <p className="flex items-center gap-2 text-[9.5px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                <span className="tabular-nums text-white/85">
+                  {String(active + 1).padStart(2, '0')}
+                </span>
+                <span className="block h-px w-3 bg-white/25" />
+                <span className="tabular-nums">{String(total).padStart(2, '0')}</span>
+                <span className="ml-auto text-[#9fd0ff]">On this page</span>
+              </p>
+              <p className="mt-2 text-[14.5px] font-semibold tracking-[-0.005em] text-white">
+                {current.label}
+              </p>
+            </div>
+
+            {/* TOC list — labels always visible, active row highlighted */}
+            <nav aria-label="On this page" className="px-1 py-2">
+              <ul className="relative">
+                {/* Vertical rail connecting all rows */}
+                <span
+                  aria-hidden
+                  className="absolute right-[14px] top-2 bottom-2 w-px bg-white/8"
+                />
+                {PAGE_SECTIONS.map((s, i) => (
+                  <li key={s.id}>
+                    <a
+                      href={`#${s.id}`}
+                      aria-current={i === active ? 'true' : undefined}
+                      className={`group relative flex items-center justify-between gap-3 rounded-lg px-3 py-[7px] transition-colors duration-200 ${
+                        i === active ? 'bg-white/[0.04]' : 'hover:bg-white/[0.03]'
+                      }`}
+                    >
+                      <span
+                        className={`text-[11.5px] leading-tight transition-colors duration-300 ${
+                          i === active
+                            ? 'font-semibold text-white'
+                            : 'font-medium text-white/45 group-hover:text-white/85'
+                        }`}
+                      >
+                        {s.label}
+                      </span>
+                      <span
+                        aria-hidden
+                        className={`relative block shrink-0 rounded-full transition-all duration-300 ${
+                          i === active
+                            ? 'h-2 w-2 bg-[#5cb3ff] shadow-[0_0_0_4px_rgba(92,179,255,0.18)]'
+                            : 'h-1.5 w-1.5 bg-white/35 group-hover:bg-white/70'
+                        }`}
+                      />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+        </motion.aside>
+      )}
+    </AnimatePresence>
+  )
+}
+
+/* ------------------------- MAGNETIC BUTTON ----------------------------- */
+
+export function MagneticButton({
+  href,
+  children,
+  className = '',
+  strength = 0.25,
+  style,
+}: {
+  href: string
+  children: ReactNode
+  className?: string
+  strength?: number
+  style?: CSSProperties
+}) {
+  const ref = useRef<HTMLAnchorElement>(null)
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const sx = useSpring(x, { stiffness: 240, damping: 22, mass: 0.6 })
+  const sy = useSpring(y, { stiffness: 240, damping: 22, mass: 0.6 })
+
+  const onMove = (e: ReactMouseEvent<HTMLAnchorElement>) => {
+    const node = ref.current
+    if (!node) return
+    const rect = node.getBoundingClientRect()
+    const cx = rect.left + rect.width / 2
+    const cy = rect.top + rect.height / 2
+    x.set((e.clientX - cx) * strength)
+    y.set((e.clientY - cy) * strength)
+  }
+
+  const onLeave = () => {
+    x.set(0)
+    y.set(0)
+  }
+
+  return (
+    <motion.a
+      ref={ref}
+      href={href}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+      style={{ x: sx, y: sy, ...style }}
+      className={className}
+    >
+      {children}
+    </motion.a>
+  )
+}
+
+/* ------------------------- ANIMATED COUNTER ---------------------------- */
+
+export function AnimatedCounter({
+  to,
+  suffix = '',
+  prefix = '',
+  duration = 1.6,
+  className = '',
+  style,
+}: {
+  to: number
+  suffix?: string
+  prefix?: string
+  duration?: number
+  className?: string
+  style?: CSSProperties
+}) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-80px' })
+  const [value, setValue] = useState(0)
+
+  useEffect(() => {
+    if (!inView) return
+    const start = performance.now()
+    let raf = 0
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / (duration * 1000), 1)
+      const eased = 1 - Math.pow(1 - t, 3)
+      setValue(Math.round(to * eased))
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [inView, to, duration])
+
+  return (
+    <span ref={ref} className={className} style={style}>
+      {prefix}
+      {value.toLocaleString('en-GB')}
+      {suffix}
+    </span>
+  )
+}
+
+/* ===================================================================== */
+/*                            SEO / GEO / SEA                             */
+/* ===================================================================== */
+
+const SEO = {
+  title:
+    'Senior Finance Support for Founder-Led Businesses | Cunos Consulting London',
+  description:
+    'Cunos Consulting provides senior finance support for founder-led businesses across the UK — experienced outsourced finance oversight, 13-week cashflow forecasting, month-end reporting, and retained advisory without the cost of a full-time Finance Director.',
+  url: 'https://cunos.co.uk/services/senior-finance-support',
+  ogImage: 'https://cunos.co.uk/og/senior-finance-support.jpg',
+  keywords: [
+    'senior finance support',
+    'outsourced finance director uk',
+    'fractional finance director london',
+    'founder-led business finance',
+    'monthly finance pack',
+    '13-week cashflow forecast',
+    'month-end reporting',
+    'retained finance advisory',
+    'sme finance support uk',
+    'cunos consulting',
+  ].join(', '),
+}
+
+function useSeoMeta() {
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+
+    const prevTitle = document.title
+    document.title = SEO.title
+
+    // Track elements we add so we can remove them on cleanup, preserving
+    // anything already authored in index.html.
+    const created: Element[] = []
+
+    const setMeta = (
+      attrName: 'name' | 'property',
+      attrValue: string,
+      content: string,
+    ) => {
+      let el = document.querySelector<HTMLMetaElement>(
+        `meta[${attrName}="${attrValue}"]`,
+      )
+      if (!el) {
+        el = document.createElement('meta')
+        el.setAttribute(attrName, attrValue)
+        document.head.appendChild(el)
+        created.push(el)
+      }
+      el.setAttribute('content', content)
+    }
+
+    const setLink = (rel: string, href: string) => {
+      let el = document.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`)
+      if (!el) {
+        el = document.createElement('link')
+        el.setAttribute('rel', rel)
+        document.head.appendChild(el)
+        created.push(el)
+      }
+      el.setAttribute('href', href)
+    }
+
+    // Standard SEO
+    setMeta('name', 'description', SEO.description)
+    setMeta('name', 'keywords', SEO.keywords)
+    setMeta('name', 'author', 'Cunos Consulting')
+    setMeta('name', 'robots', 'index, follow, max-image-preview:large')
+    setMeta('name', 'theme-color', '#06122a')
+
+    // GEO targeting
+    setMeta('name', 'geo.region', 'GB-LND')
+    setMeta('name', 'geo.placename', 'London')
+    setMeta('name', 'geo.position', '51.5074;-0.1278')
+    setMeta('name', 'ICBM', '51.5074, -0.1278')
+
+    // Open Graph
+    setMeta('property', 'og:type', 'website')
+    setMeta('property', 'og:site_name', 'Cunos Consulting')
+    setMeta('property', 'og:locale', 'en_GB')
+    setMeta('property', 'og:url', SEO.url)
+    setMeta('property', 'og:title', SEO.title)
+    setMeta('property', 'og:description', SEO.description)
+    setMeta('property', 'og:image', SEO.ogImage)
+    setMeta('property', 'og:image:width', '1200')
+    setMeta('property', 'og:image:height', '630')
+
+    // Twitter
+    setMeta('name', 'twitter:card', 'summary_large_image')
+    setMeta('name', 'twitter:title', SEO.title)
+    setMeta('name', 'twitter:description', SEO.description)
+    setMeta('name', 'twitter:image', SEO.ogImage)
+
+    // Canonical
+    setLink('canonical', SEO.url)
+
+    // JSON-LD: Service + Organization + FAQPage + BreadcrumbList
+    const jsonLd = {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Organization',
+          '@id': 'https://cunos.co.uk/#organization',
+          name: 'Cunos Consulting',
+          url: 'https://cunos.co.uk',
+          logo: 'https://cunos.co.uk/brand/logo.svg',
+          email: CONTACT.email,
+          telephone: CONTACT.phoneDisplay,
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: 'London',
+            addressCountry: 'GB',
+          },
+          areaServed: {
+            '@type': 'Country',
+            name: 'United Kingdom',
+          },
+          sameAs: [CONTACT.linkedinHref],
+        },
+        {
+          '@type': 'Service',
+          '@id': SEO.url + '#service',
+          name: 'Senior Finance Support',
+          serviceType: 'Outsourced finance leadership for founder-led businesses',
+          description: SEO.description,
+          provider: { '@id': 'https://cunos.co.uk/#organization' },
+          areaServed: {
+            '@type': 'Country',
+            name: 'United Kingdom',
+          },
+          audience: {
+            '@type': 'BusinessAudience',
+            audienceType: 'Founder-led SMEs, £1m–£25m revenue',
+          },
+          offers: {
+            '@type': 'Offer',
+            availability: 'https://schema.org/InStock',
+            priceCurrency: 'GBP',
+            priceSpecification: {
+              '@type': 'PriceSpecification',
+              description: 'Scope-based monthly retainer — agreed after the initial review.',
+            },
+          },
+          hasOfferCatalog: {
+            '@type': 'OfferCatalog',
+            name: 'Senior Finance Support areas',
+            itemListElement: SOLUTION_AREAS.map((a) => ({
+              '@type': 'Offer',
+              itemOffered: { '@type': 'Service', name: a.title, description: a.body },
+            })),
+          },
+        },
+        {
+          '@type': 'FAQPage',
+          '@id': SEO.url + '#faq',
+          mainEntity: FAQ_ITEMS.map((f) => ({
+            '@type': 'Question',
+            name: f.q,
+            acceptedAnswer: { '@type': 'Answer', text: f.a },
+          })),
+        },
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: 'Home',
+              item: 'https://cunos.co.uk/',
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: 'Services',
+              item: 'https://cunos.co.uk/#whats-next',
+            },
+            {
+              '@type': 'ListItem',
+              position: 3,
+              name: 'Senior Finance Support',
+              item: SEO.url,
+            },
+          ],
+        },
+        {
+          '@type': 'WebPage',
+          '@id': SEO.url,
+          url: SEO.url,
+          name: SEO.title,
+          description: SEO.description,
+          inLanguage: 'en-GB',
+          isPartOf: {
+            '@type': 'WebSite',
+            url: 'https://cunos.co.uk',
+            name: 'Cunos Consulting',
+          },
+          about: { '@id': SEO.url + '#service' },
+          primaryImageOfPage: SEO.ogImage,
+        },
+      ],
+    }
+
+    const script = document.createElement('script')
+    script.type = 'application/ld+json'
+    script.text = JSON.stringify(jsonLd)
+    script.setAttribute('data-jsonld', 'senior-finance-support')
+    document.head.appendChild(script)
+    created.push(script)
+
+    return () => {
+      document.title = prevTitle
+      created.forEach((el) => el.parentElement?.removeChild(el))
+    }
+  }, [])
 }

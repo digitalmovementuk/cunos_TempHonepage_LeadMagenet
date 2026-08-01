@@ -405,6 +405,11 @@ function Hero() {
   const reduce = useReducedMotion()
   const videoRef = useRef<HTMLVideoElement>(null)
   const heroRef = useRef<HTMLElement>(null)
+  // Mobile gets a much smaller/lower-res clip — the single 1440p desktop file
+  // was too heavy to reliably load over cellular and read as "not loading".
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches,
+  )
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -435,6 +440,13 @@ function Hero() {
   )
 
   useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const update = () => setIsMobile(mq.matches)
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  useEffect(() => {
     const v = videoRef.current
     if (!v) return
     v.muted = true
@@ -446,7 +458,7 @@ function Hero() {
     }
     v.addEventListener('timeupdate', onTime)
     return () => v.removeEventListener('timeupdate', onTime)
-  }, [])
+  }, [isMobile])
 
   return (
     <section
@@ -465,9 +477,10 @@ function Hero() {
             muted
             playsInline
             preload="auto"
+            poster={`${import.meta.env.BASE_URL}media/hero-poster.jpg`}
             style={{ y: videoY, scale: videoScale }}
             className="absolute inset-0 h-full w-full object-cover"
-            src={`${import.meta.env.BASE_URL}media/v9-hero-background.mp4`}
+            src={`${import.meta.env.BASE_URL}media/${isMobile ? 'hero-mobile' : 'hero-desktop'}.mp4`}
           />
         )}
 

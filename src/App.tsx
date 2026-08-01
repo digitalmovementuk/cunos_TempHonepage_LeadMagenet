@@ -469,20 +469,18 @@ function Hero() {
     >
       {/* Sticky video — pinned in viewport across both slides */}
       <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
-        {!reduce && (
-          <motion.video
-            ref={videoRef}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            poster={`${import.meta.env.BASE_URL}media/hero-poster.jpg`}
-            style={{ y: videoY, scale: videoScale }}
-            className="absolute inset-0 h-full w-full object-cover"
-            src={`${import.meta.env.BASE_URL}media/${isMobile ? 'hero-mobile' : 'hero-desktop'}.mp4`}
-          />
-        )}
+        <motion.video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          poster={`${import.meta.env.BASE_URL}media/hero-poster.jpg`}
+          style={{ y: videoY, scale: videoScale }}
+          className="absolute inset-0 h-full w-full object-cover"
+          src={`${import.meta.env.BASE_URL}media/${isMobile ? 'hero-mobile' : 'hero-desktop'}.mp4`}
+        />
 
         <div aria-hidden className="pointer-events-none absolute inset-0 bg-black/25" />
 
@@ -850,7 +848,7 @@ function ComingSoon() {
           <h2
             className="mt-6 text-[#1d1d1f] sm:mt-8"
             style={{
-              fontSize: 'clamp(64px, 9vw, 160px)',
+              fontSize: 'clamp(40px, 9vw, 160px)',
               lineHeight: '1.0',
               letterSpacing: '-0.04em',
               fontWeight: 700,
@@ -1257,7 +1255,7 @@ function Scorecard() {
                 <h2
                   className="mx-auto mt-5 max-w-[760px] text-white lg:mx-0"
                   style={{
-                    fontSize: 'clamp(64px, 9vw, 160px)',
+                    fontSize: 'clamp(40px, 9vw, 160px)',
                     lineHeight: '1.0',
                     letterSpacing: '-0.04em',
                     fontWeight: 700,
@@ -1995,7 +1993,7 @@ function Contact() {
             <h2
               className="mt-5 text-white sm:mt-6"
               style={{
-                fontSize: 'clamp(64px, 9vw, 160px)',
+                fontSize: 'clamp(40px, 9vw, 160px)',
                 lineHeight: '1.0',
                 letterSpacing: '-0.04em',
                 fontWeight: 700,
@@ -2316,7 +2314,7 @@ export function Footer() {
             <h2
               className="mt-3 text-[#1d1d1f]"
               style={{
-                fontSize: 'clamp(64px, 9vw, 160px)',
+                fontSize: 'clamp(40px, 9vw, 160px)',
                 lineHeight: '1.0',
                 letterSpacing: '-0.04em',
                 fontWeight: 700,

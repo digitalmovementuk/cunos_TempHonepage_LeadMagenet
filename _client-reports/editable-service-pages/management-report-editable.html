@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monthly Management Reporting | Cunos Consulting London</title>
+<meta name="description" content="Cunos Consulting monthly management reporting for founder-led UK businesses. KPI pack, variance commentary, three next steps. Delivered five working days after month-end close.">
+<link rel="canonical" href="https://cunos.co.uk/services/management-report">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--canvas:#07010d;--canvas-deep:#000;--ink:#f4eefb;--muted:#b7a9c7;--line:rgba(255,255,255,0.12);--line-soft:rgba(255,255,255,0.06);--light:#fbfbfd;--light-tint:#f5f8fc;--light-ink:#1d1d1f;--light-mute:#86868b;--light-rule:rgba(0,0,0,0.08);--blue:#0071E3;--blue-bright:#0077ED;--blue-soft:#eef5ff;--blue-light:#9fd0ff;--green:#34c759;--green-soft:rgba(52,199,89,.15);--sans:'Inter','Helvetica Neue',Helvetica,Arial,sans-serif}
+*,*::before,*::after{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--canvas-deep);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+img,svg{display:block;max-width:100%}a{color:inherit;text-decoration:none}
+.edit-toolbar{position:fixed;bottom:18px;right:18px;top:auto;left:auto;z-index:1000;display:flex;align-items:center;gap:6px;background:#f5f5f5;padding:6px;border:1px solid #d4d4d4;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.14);font-family:'Roboto','Helvetica Neue',Arial,sans-serif}
+.edit-toolbar button{font-family:'Roboto','Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:500;letter-spacing:0;text-transform:none;padding:7px 12px;background:#fff;color:#333;border:1px solid #d4d4d4;border-radius:6px;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s}
+.edit-toolbar button:hover{background:#eaeaea;border-color:#9e9e9e}
+.edit-toolbar button.active{background:#1976d2;color:#fff;border-color:#1976d2}
+.edit-toolbar .hint{padding:0 10px 0 4px;font-family:'Roboto','Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:400;color:#666;letter-spacing:0;text-transform:none}
+@media(max-width:640px){.edit-toolbar{bottom:12px;right:12px;padding:5px;gap:5px}.edit-toolbar button{font-size:11px;padding:6px 10px}.edit-toolbar .hint{display:none}}
+body.edit-mode main{outline:2px dashed var(--blue-light);outline-offset:6px}
+body.edit-mode main *:hover{background:rgba(159,208,255,.06)}
+body.edit-mode main [data-verify]{background:rgba(159,208,255,.18);border-bottom:1px dashed var(--blue-light);padding:0 3px;border-radius:2px}
+body.edit-mode main [data-verify]::after{content:"●";color:var(--blue-light);font-size:10px;vertical-align:super;margin-left:3px}
+body.edit-mode section.light [data-verify],body.edit-mode section.light-tint [data-verify]{background:rgba(0,113,227,.12);border-bottom:1px dashed var(--blue)}
+body.edit-mode section.light [data-verify]::after,body.edit-mode section.light-tint [data-verify]::after{color:var(--blue)}
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(7,1,13,.72);backdrop-filter:blur(20px);border-bottom:1px solid var(--line-soft)}
+.nav__inner{max-width:1640px;margin:0 auto;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;gap:32px}
+.nav__brand{font-weight:600;font-size:15px;color:#fff;display:flex;align-items:center;gap:10px}
+.nav__brand svg{width:24px;height:24px}
+.nav__menu{display:flex;gap:32px;font-size:13px;font-weight:500;color:rgba(255,255,255,.7)}
+.nav__menu a:hover,.nav__menu a.active{color:#fff}
+.nav__cta{padding:10px 20px;background:var(--blue);color:#fff;border-radius:999px;font-size:13px;font-weight:500;transition:background .2s}
+.nav__cta:hover{background:var(--blue-bright)}
+@media(max-width:780px){.nav__menu{display:none}.nav__inner{padding:16px 20px}}
+main{padding-top:0}
+section{padding:112px 32px;position:relative;isolation:isolate;overflow:hidden}
+section.light{background:var(--light);color:var(--light-ink)}
+section.light-tint{background:var(--light-tint);color:var(--light-ink)}
+section.dark{background:var(--canvas-deep);color:var(--ink)}
+section.dark-navy{background:#06122a;color:var(--ink)}
+.shell{max-width:1640px;margin:0 auto;position:relative;z-index:1}
+.shell--narrow{max-width:1100px;margin:0 auto}
+.eyebrow{display:flex;align-items:center;gap:12px;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);margin-bottom:28px}
+.eyebrow::before{content:"";width:40px;height:1px;background:var(--blue)}
+section.dark .eyebrow,section.dark-navy .eyebrow{color:var(--blue-light)}
+section.dark .eyebrow::before,section.dark-navy .eyebrow::before{background:var(--blue-light)}
+h1.hero-h1{font-size:clamp(56px,9vw,156px);line-height:1.0;letter-spacing:-.045em;font-weight:700;margin:0;color:#fff}
+.hero-h1__sub{display:block;margin-top:24px;font-size:clamp(20px,2.4vw,32px);line-height:1.2;letter-spacing:-.018em;font-weight:500;color:rgba(255,255,255,.8)}
+h2.section-h2{font-size:clamp(40px,5.6vw,88px);line-height:1.02;letter-spacing:-.035em;font-weight:700;margin:28px 0 0;max-width:1100px}
+h3{font-size:24px;font-weight:600;letter-spacing:-.015em;margin:0 0 14px;line-height:1.25}
+p{margin:0 0 16px}
+.lede{margin-top:36px;max-width:680px;font-size:19px;line-height:1.55;color:rgba(255,255,255,.72)}
+section.light .lede,section.light-tint .lede{color:#3c3c43}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:999px;font-size:15px;font-weight:500;transition:all .2s;cursor:pointer;border:0;font-family:inherit}
+.btn--primary{background:var(--blue);color:#fff}
+.btn--primary:hover{background:var(--blue-bright);box-shadow:0 18px 40px -10px rgba(0,113,227,.55)}
+.btn-row{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:48px}
+.hero{background:#000;padding:160px 32px 120px;min-height:80vh;display:flex;align-items:center}
+.hero::before{content:"";position:absolute;inset:-100px;background:radial-gradient(ellipse at 50% 0%,rgba(0,113,227,.30),transparent 70%);pointer-events:none;z-index:0}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.35) 50%,rgba(0,0,0,.9) 100%);pointer-events:none;z-index:0}
+.hero .shell{max-width:1200px;position:relative;z-index:1}
+.hero-eyebrow{font-size:13px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--blue-light);display:flex;align-items:center;gap:14px;margin-bottom:36px}
+.hero-eyebrow::before{content:"";width:48px;height:1px;background:var(--blue-light);opacity:.85}
+.hero-deck{margin-top:40px;max-width:780px;font-size:22px;line-height:1.55;color:rgba(255,255,255,.72)}
+.hero-meta{margin-top:24px;max-width:360px;font-size:14px;line-height:1.5;color:rgba(255,255,255,.55)}
+.stats{background:var(--canvas-deep);border-top:1px solid var(--line);padding:80px 32px}
+.stats__grid{max-width:1640px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:48px}
+.stat{padding-right:32px;border-right:1px solid var(--line)}
+.stat:last-child{border-right:0}
+.stat__value{font-size:clamp(56px,7vw,96px);font-weight:700;letter-spacing:-.04em;line-height:1;color:#fff;margin-bottom:18px}
+.stat__value small{font-size:.45em;font-weight:500;color:var(--muted);margin-left:6px}
+.stat__label{font-size:15px;font-weight:500;color:#fff;margin-bottom:4px}
+.stat__sub{font-size:13px;color:var(--muted)}
+@media(max-width:780px){.stats__grid{grid-template-columns:1fr;gap:32px}.stat{border-right:0;border-bottom:1px solid var(--line);padding:0 0 32px 0}.stat:last-child{border-bottom:0;padding-bottom:0}}
+.problem-cards{margin-top:80px;display:flex;flex-direction:column;gap:24px}
+.problem-card{background:linear-gradient(135deg,#06122a 0%,#0a1a3a 100%);border-radius:28px;padding:64px 56px;color:#fff;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.problem-card::before{content:"";position:absolute;inset:0;background:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);background-size:24px 24px;opacity:.6}
+.problem-card__num{font-size:13px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--blue-light);margin-bottom:18px;position:relative}
+.problem-card__symptom{font-size:clamp(32px,5vw,64px);line-height:1.05;letter-spacing:-.035em;font-weight:700;margin:0 0 24px;color:#fff;max-width:18ch;position:relative}
+.problem-card__meaning{font-size:18px;color:rgba(255,255,255,.72);max-width:48ch;margin:0;position:relative;line-height:1.5}
+@media(max-width:780px){.problem-card{padding:40px 28px}}
+.what-is__h1{font-size:clamp(56px,8.5vw,156px);line-height:1.0;letter-spacing:-.04em;font-weight:700;margin:24px 0 0;color:var(--light-ink)}
+.what-is__h1 .mute{color:#a1a1a6}
+.what-is__body{margin-top:48px;max-width:760px;font-size:21px;line-height:1.55;color:#3c3c43}
+.solution-grid{margin-top:80px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.solution-card{background:#fff;border:1px solid var(--light-rule);border-radius:24px;padding:40px;transition:transform .3s,box-shadow .3s}
+.solution-card:hover{transform:translateY(-4px);box-shadow:0 30px 60px -30px rgba(15,15,30,.18)}
+.solution-card__icon{width:48px;height:48px;border-radius:14px;background:var(--blue-soft);display:flex;align-items:center;justify-content:center;margin-bottom:24px;color:var(--blue);font-weight:600}
+.solution-card h3{font-size:22px;font-weight:600;color:var(--light-ink);margin:0 0 12px;letter-spacing:-.015em}
+.solution-card p{font-size:15px;color:#3c3c43;line-height:1.6;margin:0}
+@media(max-width:980px){.solution-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:620px){.solution-grid{grid-template-columns:1fr}}
+.compare{margin-top:80px;overflow:hidden;border-radius:24px;border:1px solid var(--light-rule);background:#fff;box-shadow:0 18px 44px -32px rgba(15,15,30,.18)}
+.compare table{width:100%;border-collapse:collapse;text-align:left}
+.compare thead th{padding:24px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--light-mute);border-bottom:1px solid var(--light-rule);background:#fff;vertical-align:top}
+.compare thead th.feat{width:24%}
+.compare thead th.col-highlight{background:var(--blue-soft);color:var(--blue)}
+.compare tbody td{padding:20px 24px;font-size:14px;border-bottom:1px solid var(--light-rule);vertical-align:top;color:#3c3c43;line-height:1.5}
+.compare tbody td.feat{font-weight:500;color:var(--light-ink)}
+.compare tbody tr:nth-child(odd){background:#fbfbfd}
+.compare tbody tr:last-child td{border-bottom:0}
+.compare td.col-highlight{background:var(--blue-soft);font-weight:500;color:var(--blue)}
+.compare .pos{display:inline-flex;align-items:center;gap:8px}
+.compare .pos::before{content:"✓";width:18px;height:18px;background:var(--green-soft);color:var(--green);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.compare .neg{display:inline-flex;align-items:center;gap:8px;color:var(--light-mute)}
+.compare .neg::before{content:"−";width:18px;height:18px;background:rgba(0,0,0,.06);color:var(--light-mute);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+@media(max-width:780px){.compare{overflow-x:auto}.compare table{min-width:760px}}
+.deliverable{display:grid;grid-template-columns:1fr 1fr;gap:64px;margin-top:80px;align-items:center}
+.deliverable-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:20px}
+.deliverable-list li{display:flex;align-items:flex-start;gap:18px;padding:20px;background:#fff;border:1px solid var(--light-rule);border-radius:16px}
+.deliverable-list .ico{width:36px;height:36px;flex-shrink:0;border-radius:10px;background:var(--blue-soft);display:flex;align-items:center;justify-content:center;color:var(--blue);font-weight:700;font-size:14px}
+.deliverable-list .txt{font-size:15.5px;color:var(--light-ink);font-weight:500;line-height:1.45}
+.deliverable-visual{background:linear-gradient(135deg,#06122a 0%,#0a1a3a 100%);border-radius:24px;padding:36px;color:#fff}
+.deliverable-visual__head{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--blue-light);margin-bottom:24px}
+.dv-row{display:flex;justify-content:space-between;align-items:baseline;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+.dv-row:last-child{border-bottom:0}
+.dv-row__label{font-size:14px;color:rgba(255,255,255,.7)}
+.dv-row__val{font-size:18px;font-weight:600;color:#fff}
+.dv-row__delta{margin-left:10px;font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--green-soft);color:var(--green)}
+@media(max-width:980px){.deliverable{grid-template-columns:1fr;gap:40px}}
+.pull-quote{padding:140px 32px}
+.pull-quote__text{font-size:clamp(32px,4.5vw,64px);line-height:1.15;letter-spacing:-.025em;font-weight:600;color:#fff;max-width:1100px;margin:0 auto}
+.pull-quote__text::before{content:"\201C";color:var(--blue-light)}
+.pull-quote__text::after{content:"\201D";color:var(--blue-light)}
+.founder{display:grid;grid-template-columns:1fr 2fr;gap:64px;margin-top:64px;align-items:start}
+.founder-photo{aspect-ratio:1;background:linear-gradient(135deg,#06122a,#1a2f5a);border-radius:24px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:64px;font-weight:700;letter-spacing:-.02em}
+.founder-text{font-size:21px;line-height:1.55;color:var(--light-ink);font-weight:400}
+.founder-text strong{font-weight:600}
+.founder-text .sig{display:block;margin-top:32px;font-size:15px;color:var(--light-mute);font-weight:500}
+@media(max-width:780px){.founder{grid-template-columns:1fr;gap:32px}}
+.testimonials-grid{margin-top:80px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.testi{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:24px;padding:40px;display:flex;flex-direction:column}
+.testi__quote{font-size:18px;line-height:1.55;color:rgba(255,255,255,.92);margin:0 0 28px;flex-grow:1}
+.testi__author{display:flex;align-items:center;gap:14px;padding-top:24px;border-top:1px solid var(--line)}
+.testi__avatar{width:44px;height:44px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;flex-shrink:0}
+.testi__meta strong{display:block;color:#fff;font-weight:600;font-size:15px}
+.testi__meta span{font-size:13px;color:var(--muted)}
+@media(max-width:980px){.testimonials-grid{grid-template-columns:1fr}}
+.who-grid{margin-top:80px;display:grid;grid-template-columns:repeat(2,1fr);gap:48px}
+.who-col h3{font-size:18px;font-weight:600;color:var(--light-mute);text-transform:uppercase;letter-spacing:.12em;margin:0 0 24px;padding-bottom:16px;border-bottom:1px solid var(--light-rule)}
+.who-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:18px}
+.who-list li{font-size:17px;line-height:1.5;color:var(--light-ink);padding-left:32px;position:relative}
+.who-col--have li::before{content:"";position:absolute;left:0;top:8px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.08)}
+.who-col--need li::before{content:"";position:absolute;left:0;top:8px;width:18px;height:18px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px rgba(0,113,227,.15)}
+@media(max-width:780px){.who-grid{grid-template-columns:1fr;gap:32px}}
+.industries-grid{margin-top:80px;display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.industry{background:#fff;border:1px solid var(--light-rule);border-radius:20px;padding:36px 28px;transition:transform .25s,box-shadow .25s}
+.industry:hover{transform:translateY(-4px);box-shadow:0 18px 44px -32px rgba(15,15,30,.2)}
+.industry h3{font-size:18px;font-weight:600;color:var(--light-ink);margin:0 0 12px}
+.industry p{font-size:14px;color:#3c3c43;line-height:1.5;margin:0}
+@media(max-width:980px){.industries-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.industries-grid{grid-template-columns:1fr}}
+.steps{margin-top:80px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.step{background:#fff;border:1px solid var(--light-rule);border-radius:22px;padding:36px 28px}
+.step__num{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin-bottom:14px}
+.step h3{font-size:19px;font-weight:600;color:var(--light-ink);margin:0 0 12px;line-height:1.25}
+.step p{font-size:14.5px;line-height:1.55;color:#3c3c43;margin:0}
+@media(max-width:980px){.steps{grid-template-columns:1fr}}
+.engagement-rows{margin-top:64px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:24px;padding:8px 32px}
+.eng-row{display:flex;justify-content:space-between;align-items:center;padding:24px 0;border-bottom:1px solid var(--line)}
+.eng-row:last-child{border-bottom:0}
+.eng-row__label{font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.eng-row__value{font-size:19px;font-weight:500;color:#fff;text-align:right}
+@media(max-width:580px){.eng-row{flex-direction:column;align-items:flex-start;gap:6px}.eng-row__value{text-align:left;font-size:17px}}
+.case{margin-top:64px;padding:56px;background:linear-gradient(135deg,#06122a 0%,#0a1a3a 100%);border-radius:32px;color:#fff;position:relative;overflow:hidden}
+.case::before{content:"";position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(0,113,227,.25),transparent 70%);pointer-events:none}
+.case__quote{font-size:clamp(22px,2.6vw,32px);line-height:1.35;letter-spacing:-.015em;color:#fff;font-weight:500;margin:0 0 48px;max-width:880px;position:relative}
+.case__author{display:flex;align-items:center;gap:16px;margin-bottom:40px;position:relative}
+.case__avatar{width:48px;height:48px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;flex-shrink:0}
+.case__author strong{display:block;font-size:16px;color:#fff;font-weight:600}
+.case__author span{font-size:13px;color:var(--muted)}
+.case__metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;padding-top:40px;border-top:1px solid rgba(255,255,255,.15);position:relative}
+.case__metric-val{font-size:clamp(28px,3vw,44px);font-weight:700;letter-spacing:-.025em;color:#fff;line-height:1;margin-bottom:8px}
+.case__metric-label{font-size:13.5px;color:var(--muted)}
+@media(max-width:780px){.case{padding:36px 28px}.case__metrics{grid-template-columns:1fr;gap:24px}}
+.insights-grid{margin-top:64px;display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+.insight{background:#fff;border:1px solid var(--light-rule);border-radius:20px;padding:32px;transition:transform .25s,box-shadow .25s;display:block}
+.insight:hover{transform:translateY(-2px);box-shadow:0 18px 40px -28px rgba(15,15,30,.2)}
+.insight__kicker{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin-bottom:12px}
+.insight h3{font-size:20px;font-weight:600;color:var(--light-ink);margin:0;line-height:1.3}
+@media(max-width:780px){.insights-grid{grid-template-columns:1fr}}
+.faq-list{margin-top:64px;display:flex;flex-direction:column;gap:14px;max-width:980px}
+.faq-item{background:#fff;border:1px solid var(--light-rule);border-radius:18px;overflow:hidden;transition:border-color .2s}
+.faq-item[open]{border-color:var(--blue)}
+.faq-item summary{padding:28px 32px;cursor:pointer;font-size:18px;font-weight:600;color:var(--light-ink);display:flex;align-items:center;justify-content:space-between;gap:20px;list-style:none}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:"+";font-size:28px;color:var(--blue);transition:transform .2s;flex-shrink:0;line-height:1;font-weight:400}
+.faq-item[open] summary::after{content:"−"}
+.faq-item__answer{padding:0 32px 28px;font-size:16px;line-height:1.65;color:#3c3c43;max-width:760px}
+.final{background:#000;padding:140px 32px;text-align:center;position:relative}
+.final::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(0,113,227,.22),transparent 60%);pointer-events:none}
+.final h2{font-size:clamp(40px,6vw,96px);line-height:1.0;letter-spacing:-.04em;font-weight:700;color:#fff;max-width:18ch;margin:0 auto 32px;position:relative}
+.final__sub{font-size:20px;color:rgba(255,255,255,.75);max-width:50ch;margin:0 auto 48px;line-height:1.55;position:relative}
+.final__email{margin-top:32px;font-size:14px;color:var(--muted);position:relative}
+.final__email a{color:var(--blue-light)}
+.footer{background:#000;color:rgba(255,255,255,.55);padding:48px 32px;font-size:13px;text-align:center;border-top:1px solid var(--line-soft)}
+.footer a{color:rgba(255,255,255,.75)}
+@media(max-width:780px){section{padding:80px 20px}.stats{padding:56px 20px}}
+@media print{.edit-toolbar,.nav{display:none}body{background:#fff;color:#000}section.dark,section.dark-navy,.hero,.stats,.pull-quote,.final,.footer{background:#fff;color:#000}.hero-h1__sub,.lede,.hero-deck,.problem-card__meaning,.testi__quote,.case__quote,.case__metric-label,.final__sub,.stat__sub{color:#444}h1.hero-h1,h2.section-h2,.problem-card__symptom,.stat__value,.dv-row__val,.eng-row__value,.case__author strong,.testi__meta strong,.pull-quote__text,.final h2,.what-is__h1{color:#000}.hero::before,.hero::after,.case::before,.final::before{display:none}}
+</style>
+</head>
+<body>
+
+<div class="edit-toolbar" id="editToolbar">
+  <button id="editToggle">✏ Edit</button>
+  <button id="copyHtml">Copy HTML</button>
+  <button id="resetEdits">Reset</button>
+  <span class="hint" id="editHint">Click Edit to modify text</span>
+</div>
+
+<nav class="nav">
+  <div class="nav__inner">
+    <a href="/" class="nav__brand">
+      <svg viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="5" fill="#0071E3"/><path d="M7 12 L11 16 L17 8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Cunos
+    </a>
+    <div class="nav__menu">
+      <a href="/services/senior-finance-support">Senior Finance Support</a>
+      <a href="/services/cashflow-forecast">Cashflow Forecast</a>
+      <a href="/services/management-report" class="active">Management Report</a>
+      <a href="/#approach">Approach</a>
+    </div>
+    <a href="#review" class="nav__cta">Book a finance review</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="shell">
+    <p class="hero-eyebrow">For UK founder-led businesses</p>
+    <h1 class="hero-h1">
+      Numbers, <span style="color:rgba(255,255,255,.55)">made decisive.</span>
+      <span class="hero-h1__sub">A monthly management report built for the founder running the business — not the accountant filing it.</span>
+    </h1>
+    <p class="hero-deck">KPI pack, variance commentary, trend analysis, three concrete next steps. Delivered five working days after month-end close. Read in 45 minutes by the leadership team.</p>
+    <div class="btn-row">
+      <a href="#review" class="btn btn--primary">Book a finance review →</a>
+      <p class="hero-meta">A short conversation about what's working, what's stretched, and where better support could help.</p>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats">
+  <div class="stats__grid">
+    <div class="stat">
+      <div class="stat__value"><span data-verify>5</span><small>days</small></div>
+      <p class="stat__label">Time to first pack</p>
+      <p class="stat__sub">After month-end close</p>
+    </div>
+    <div class="stat">
+      <div class="stat__value"><span data-verify>7</span><small>KPIs</small></div>
+      <p class="stat__label">Decision-grade</p>
+      <p class="stat__sub">The numbers that matter</p>
+    </div>
+    <div class="stat">
+      <div class="stat__value"><span data-verify>3</span><small>actions</small></div>
+      <p class="stat__label">Per month</p>
+      <p class="stat__sub">Concrete next steps</p>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="light" id="problem">
+  <div class="shell">
+    <p class="eyebrow">The problem</p>
+    <h2 class="section-h2">The numbers arrive too late, in the wrong format, with no story.</h2>
+    <p class="lede">Four reasons the monthly review keeps becoming a numbers walkthrough instead of a decision meeting.</p>
+
+    <div class="problem-cards">
+      <div class="problem-card">
+        <p class="problem-card__num">01</p>
+        <h3 class="problem-card__symptom">Reports arrive too late to act on.</h3>
+        <p class="problem-card__meaning">By the time the numbers land, the month is gone. You're reading history instead of running the business.</p>
+      </div>
+      <div class="problem-card">
+        <p class="problem-card__num">02</p>
+        <h3 class="problem-card__symptom">A P&L without commentary.</h3>
+        <p class="problem-card__meaning">A wall of numbers — no signal, no story, no decisions. The leadership team reads it and asks the same six questions every month.</p>
+      </div>
+      <div class="problem-card">
+        <p class="problem-card__num">03</p>
+        <h3 class="problem-card__symptom">No view of variance against plan.</h3>
+        <p class="problem-card__meaning">You can't see what is on track and what isn't. The early-warning signals are invisible until they're already trends.</p>
+      </div>
+      <div class="problem-card">
+        <p class="problem-card__num">04</p>
+        <h3 class="problem-card__symptom">Different numbers in every meeting.</h3>
+        <p class="problem-card__meaning">Each team builds its own version — none of them line up. Half the meeting is spent arguing about which numbers are right.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SIGNS -->
+<section class="light-tint" id="signs">
+  <div class="shell shell--narrow">
+    <p class="eyebrow">Signs you've outgrown your current reporting</p>
+    <h2 class="section-h2">Six signals the reporting layer needs an upgrade.</h2>
+    <p class="lede">Three or more familiar? The monthly review has stopped being useful — it's now ceremony, not steering.</p>
+
+    <ul class="who-list" style="margin-top:72px;display:grid;grid-template-columns:1fr 1fr;gap:24px 48px">
+      <li style="padding-left:36px;font-size:16px;line-height:1.55"><span style="position:absolute;left:0;top:4px;width:24px;height:24px;background:var(--blue-soft);color:var(--blue);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:11px">01</span>Last month's P&L lands in the middle of the next month — too late to act on.</li>
+      <li style="padding-left:36px;font-size:16px;line-height:1.55"><span style="position:absolute;left:0;top:4px;width:24px;height:24px;background:var(--blue-soft);color:var(--blue);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:11px">02</span>Every meeting starts with someone arguing about which numbers are right.</li>
+      <li style="padding-left:36px;font-size:16px;line-height:1.55"><span style="position:absolute;left:0;top:4px;width:24px;height:24px;background:var(--blue-soft);color:var(--blue);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:11px">03</span>Variance against budget is invisible — you can't tell what is on track and what isn't.</li>
+      <li style="padding-left:36px;font-size:16px;line-height:1.55"><span style="position:absolute;left:0;top:4px;width:24px;height:24px;background:var(--blue-soft);color:var(--blue);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:11px">04</span>Your investors and board are increasingly asking for a "proper" pack, and you're panic-prepping for each meeting.</li>
+      <li style="padding-left:36px;font-size:16px;line-height:1.55"><span style="position:absolute;left:0;top:4px;width:24px;height:24px;background:var(--blue-soft);color:var(--blue);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:11px">05</span>The monthly review has become a numbers walkthrough instead of a decisions meeting.</li>
+      <li style="padding-left:36px;font-size:16px;line-height:1.55"><span style="position:absolute;left:0;top:4px;width:24px;height:24px;background:var(--blue-soft);color:var(--blue);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:11px">06</span>You spot trends weeks after they've started — and miss the early warning signs entirely.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- WHAT IS / SOLUTION -->
+<section class="light" id="solution">
+  <div class="shell">
+    <p class="eyebrow">In plain terms</p>
+    <h2 class="what-is__h1">Numbers <span class="mute">that travel with you.</span></h2>
+    <p class="what-is__body">A monthly management report is a curated pack — 7-10 pages, plain English, designed for the leadership team to read in 45 minutes and act on the same week. It's not statutory accounts. It's not a dashboard. It's the spine of how a growing business runs the month.</p>
+
+    <p class="eyebrow" style="margin-top:96px">What we cover</p>
+    <h2 class="section-h2">Six elements. One monthly cadence.</h2>
+
+    <div class="solution-grid">
+      <div class="solution-card">
+        <div class="solution-card__icon">📊</div>
+        <h3>KPI summary</h3>
+        <p>The 7 numbers that actually move your business — chosen with you in week one. Revenue, margin, runway, plus 2-3 operating metrics specific to your model.</p>
+      </div>
+      <div class="solution-card">
+        <div class="solution-card__icon">📝</div>
+        <h3>Variance commentary</h3>
+        <p>What hit plan, what missed, why. Written in plain English by a human — not auto-generated. The bit dashboards don't do.</p>
+      </div>
+      <div class="solution-card">
+        <div class="solution-card__icon">📈</div>
+        <h3>Trend analysis</h3>
+        <p>12-month rolling view on every key KPI. Early-warning signals visible months before they become problems.</p>
+      </div>
+      <div class="solution-card">
+        <div class="solution-card__icon">🎯</div>
+        <h3>Board-ready pack</h3>
+        <p>Same monthly pack, quarter-end version formatted for board or investor consumption. No panic-prep on the Friday before.</p>
+      </div>
+      <div class="solution-card">
+        <div class="solution-card__icon">🔗</div>
+        <h3>Single source of truth</h3>
+        <p>One pack. One set of numbers. No more debating which spreadsheet is right. The whole leadership team runs off the same data.</p>
+      </div>
+      <div class="solution-card">
+        <div class="solution-card__icon">✅</div>
+        <h3>Three things to do next</h3>
+        <p>Every pack ends with three concrete recommendations based on what the numbers say. Decisions, not just observations.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section class="light-tint" id="comparison">
+  <div class="shell">
+    <p class="eyebrow">Compare options</p>
+    <h2 class="section-h2">How this compares to the alternatives.</h2>
+    <p class="lede">Four ways founder-led businesses try to solve the reporting problem. Here's how a proper management report sits against the others.</p>
+
+    <div class="compare">
+      <table>
+        <thead>
+          <tr>
+            <th class="feat">Feature</th>
+            <th>Accountant P&amp;L</th>
+            <th>Internal team build</th>
+            <th class="col-highlight">Management Reporting</th>
+            <th>BI / dashboard tools</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="feat">Time to first pack</td><td><span class="neg">2–3 weeks after close</span></td><td><span class="neg">3–6 months to build</span></td><td class="col-highlight"><span class="pos">5 working days</span></td><td><span class="neg">Weeks to set up</span></td></tr>
+          <tr><td class="feat">Variance commentary</td><td><span class="neg">No</span></td><td><span class="neg">If anyone has time</span></td><td class="col-highlight"><span class="pos">Yes — plain English</span></td><td><span class="neg">Dashboards only</span></td></tr>
+          <tr><td class="feat">KPI selection</td><td><span class="neg">Generic P&amp;L lines</span></td><td><span class="pos">Defined by your team</span></td><td class="col-highlight"><span class="pos">Defined with you in week 1</span></td><td><span>Whatever you wire up</span></td></tr>
+          <tr><td class="feat">Board-ready format</td><td><span class="neg">No</span></td><td><span class="neg">Eventually</span></td><td class="col-highlight"><span class="pos">Yes — every month</span></td><td><span class="neg">Dashboards, not packs</span></td></tr>
+          <tr><td class="feat">Cost (typical UK)</td><td><span data-verify>Included in accountant fee</span></td><td><span data-verify>£60k+ analyst hire</span></td><td class="col-highlight"><span data-verify>Scope-based monthly</span></td><td><span data-verify>£10k+ tools + setup</span></td></tr>
+          <tr><td class="feat">Best fit</td><td><span data-verify>Statutory only</span></td><td><span data-verify>£10m+ ready for in-house</span></td><td class="col-highlight"><span class="pos" data-verify>£1m–£25m founder-led</span></td><td><span data-verify>Data-heavy ops</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- DELIVERABLE -->
+<section class="light" id="deliverable">
+  <div class="shell">
+    <p class="eyebrow">The deliverable</p>
+    <h2 class="section-h2">What lands on day five.</h2>
+    <p class="lede">Four sections, in this order, every month. Designed for a 45-minute read by the leadership team.</p>
+
+    <div class="deliverable">
+      <ul class="deliverable-list">
+        <li><span class="ico">01</span><span class="txt">KPI summary with 12-month trend</span></li>
+        <li><span class="ico">02</span><span class="txt">Variance commentary in plain English</span></li>
+        <li><span class="ico">03</span><span class="txt">Revenue, gross margin, and runway view</span></li>
+        <li><span class="ico">04</span><span class="txt">Three concrete next steps each month</span></li>
+      </ul>
+
+      <div class="deliverable-visual">
+        <p class="deliverable-visual__head">Sample · Last month</p>
+        <div class="dv-row"><span class="dv-row__label">Revenue</span><span class="dv-row__val" data-verify>£284k <span class="dv-row__delta">+8.2%</span></span></div>
+        <div class="dv-row"><span class="dv-row__label">Gross margin</span><span class="dv-row__val" data-verify>62.4% <span class="dv-row__delta">+1.1pp</span></span></div>
+        <div class="dv-row"><span class="dv-row__label">EBITDA</span><span class="dv-row__val" data-verify>£42k <span class="dv-row__delta">+£11k</span></span></div>
+        <div class="dv-row"><span class="dv-row__label">Cash</span><span class="dv-row__val" data-verify>£612k <span class="dv-row__delta">+£42k</span></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PULL QUOTE -->
+<section class="dark" id="voice">
+  <div class="pull-quote">
+    <p class="pull-quote__text">The monthly pack should be the spine of how the leadership team runs the business — not the post-mortem that arrives once it's too late to do anything.</p>
+  </div>
+</section>
+
+<!-- FOUNDER -->
+<section class="light" id="founder">
+  <div class="shell">
+    <p class="eyebrow">Senior advisor</p>
+    <h2 class="section-h2">Why this matters.</h2>
+
+    <div class="founder">
+      <div class="founder-photo" data-verify>EM</div>
+      <div class="founder-text">
+        <p>Every leadership team I've worked with that doesn't have a proper monthly pack has the same conversation in the same meeting every month: <em>which numbers are right?</em></p>
+        <p><strong>A management report ends that conversation.</strong> One pack. One set of numbers. Three things to do next. Read in 45 minutes, discussed in 15, decided in another 15. The monthly review becomes a decisions meeting instead of a debate about data.</p>
+        <p class="sig" data-verify>— Enting Man · Founder, Cunos Consulting</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="dark-navy" id="testimonials">
+  <div class="shell">
+    <p class="eyebrow">What clients say</p>
+    <h2 class="section-h2">A pack the team reads. A meeting that decides.</h2>
+
+    <div class="testimonials-grid">
+      <div class="testi">
+        <p class="testi__quote" data-verify>"Our monthly leadership meeting used to be a numbers walkthrough. Now it's a decisions meeting — because the pack has already done the walking through. Single biggest unlock of the year."</p>
+        <div class="testi__author">
+          <div class="testi__avatar" data-verify>TR</div>
+          <div class="testi__meta">
+            <strong data-verify>Tom Reeves</strong>
+            <span data-verify>CEO · B2B SaaS · £6m ARR</span>
+          </div>
+        </div>
+      </div>
+      <div class="testi">
+        <p class="testi__quote" data-verify>"The variance commentary is the thing. Anyone can pull a P&amp;L. Having someone write what changed and why — in plain English — is what makes the pack worth reading."</p>
+        <div class="testi__author">
+          <div class="testi__avatar" data-verify>CR</div>
+          <div class="testi__meta">
+            <strong data-verify>Charlotte Reid</strong>
+            <span data-verify>Founder · Professional services · UK + EU</span>
+          </div>
+        </div>
+      </div>
+      <div class="testi">
+        <p class="testi__quote" data-verify>"Our board went from 'where are the numbers?' to 'when's the next pack?' in two months. We send the same pack to investors quarterly with zero extra prep."</p>
+        <div class="testi__author">
+          <div class="testi__avatar" data-verify>KH</div>
+          <div class="testi__meta">
+            <strong data-verify>Karim Hassan</strong>
+            <span data-verify>Founder · E-commerce · 4 brands</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO FOR -->
+<section class="light" id="who">
+  <div class="shell shell--narrow">
+    <p class="eyebrow">Who this is for</p>
+    <h2 class="section-h2">If this sounds like you, the fit is good.</h2>
+
+    <div class="who-grid">
+      <div class="who-col who-col--have">
+        <h3>You have</h3>
+        <ul class="who-list">
+          <li>A founder-led business doing <strong data-verify>£1m–£25m in revenue</strong>.</li>
+          <li>A monthly leadership or board meeting that reads numbers off slides.</li>
+          <li>An accountant producing statutory accounts only.</li>
+          <li>A growing team needing one source of truth.</li>
+        </ul>
+      </div>
+      <div class="who-col who-col--need">
+        <h3>You need</h3>
+        <ul class="who-list">
+          <li>A monthly pack the leadership team can rely on.</li>
+          <li>Variance against plan, in plain English.</li>
+          <li>A board-ready format with no panic-prep.</li>
+          <li>Three concrete next steps from every month's data.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INDUSTRIES -->
+<section class="light-tint" id="industries">
+  <div class="shell">
+    <p class="eyebrow">By industry</p>
+    <h2 class="section-h2">Where we report most.</h2>
+    <p class="lede">Different sectors need different KPIs. Here's where we've built the most pattern-recognition.</p>
+
+    <div class="industries-grid">
+      <div class="industry"><h3>SaaS</h3><p>ARR / MRR, NRR, gross margin, runway. The metrics investors expect and the leadership team needs to steer growth.</p></div>
+      <div class="industry"><h3>Digital agencies</h3><p>Utilisation, project margin, WIP, recoverability. The numbers behind the headline P&amp;L.</p></div>
+      <div class="industry"><h3>Professional services</h3><p>Realisation rates, partner economics, retainer-vs-project mix. Built around partner-led decision-making.</p></div>
+      <div class="industry"><h3>E-commerce</h3><p>Contribution margin, marketing payback, channel mix, inventory turnover. Cash-aware reporting for ops-heavy models.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW WE WORK -->
+<section class="light" id="how">
+  <div class="shell">
+    <p class="eyebrow">How we work</p>
+    <h2 class="section-h2">Three steps from first call to monthly cadence.</h2>
+
+    <div class="steps">
+      <div class="step">
+        <p class="step__num">Step 01 · Week 1</p>
+        <h3>Define the report</h3>
+        <p>30-minute scope call. We agree the 7 KPIs that matter most for your business. Read-only access to your accounting system.</p>
+      </div>
+      <div class="step">
+        <p class="step__num">Step 02 · Month 1</p>
+        <h3>First pack delivered</h3>
+        <p>The first pack ships within 5 working days of month-end close. Built around your KPIs, your chart of accounts, your model.</p>
+      </div>
+      <div class="step">
+        <p class="step__num">Step 03 · Monthly</p>
+        <h3>Monthly cadence</h3>
+        <p>Every month: pack delivered by day 5, optional walkthrough call, async access in between. KPIs reviewed quarterly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ENGAGEMENT -->
+<section class="dark-navy" id="engagement">
+  <div class="shell shell--narrow">
+    <p class="eyebrow">Engagement</p>
+    <h2 class="section-h2">How it's structured.</h2>
+
+    <div class="engagement-rows">
+      <div class="eng-row"><span class="eng-row__label">Cadence</span><span class="eng-row__value" data-verify>Monthly · 5 days after close</span></div>
+      <div class="eng-row"><span class="eng-row__label">Commitment</span><span class="eng-row__value" data-verify>Rolling · no lock-in</span></div>
+      <div class="eng-row"><span class="eng-row__label">Pricing</span><span class="eng-row__value" data-verify>Scope-based — shared after the review</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CASE STUDY -->
+<section class="light" id="case-study">
+  <div class="shell">
+    <p class="eyebrow">Case study</p>
+    <h2 class="section-h2">From "which numbers are right?" to "what should we do?"</h2>
+
+    <div class="case">
+      <p class="case__quote" data-verify>"Our monthly meeting was 90 minutes of disagreement about the data and 30 minutes of decisions. The pack inverted that. Now the meeting is 15 minutes of agreement on the data and 75 minutes of decisions."</p>
+      <div class="case__author">
+        <div class="case__avatar" data-verify>TR</div>
+        <div>
+          <strong data-verify>Tom Reeves</strong>
+          <span data-verify>CEO · B2B SaaS · £6m ARR</span>
+        </div>
+      </div>
+      <div class="case__metrics">
+        <div><div class="case__metric-val" data-verify>15 days → 5 days</div><p class="case__metric-label">Time to monthly pack</p></div>
+        <div><div class="case__metric-val" data-verify>+45 min</div><p class="case__metric-label">Reclaimed for decisions per meeting</p></div>
+        <div><div class="case__metric-val" data-verify>0 disputes</div><p class="case__metric-label">Number-source disputes per quarter</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSIGHTS -->
+<section class="light-tint" id="insights">
+  <div class="shell">
+    <p class="eyebrow">Insights</p>
+    <h2 class="section-h2">Notes from the reporting frontline.</h2>
+
+    <div class="insights-grid">
+      <a href="#" class="insight"><p class="insight__kicker">Reading · 8 min</p><h3 data-verify>The 7 KPIs every founder-led business should track monthly</h3></a>
+      <a href="#" class="insight"><p class="insight__kicker">Reading · 6 min</p><h3 data-verify>Management report vs. accountant P&amp;L: what each is actually for</h3></a>
+      <a href="#" class="insight"><p class="insight__kicker">Reading · 7 min</p><h3 data-verify>How to write variance commentary that founders actually read</h3></a>
+      <a href="#" class="insight"><p class="insight__kicker">Reading · 5 min</p><h3 data-verify>Dashboards vs. management packs: when each one wins</h3></a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="light" id="faq">
+  <div class="shell">
+    <p class="eyebrow">FAQ</p>
+    <h2 class="section-h2">Questions founders ask before booking.</h2>
+
+    <div class="faq-list">
+      <details class="faq-item" open>
+        <summary>How is this different from a P&amp;L my accountant produces?</summary>
+        <div class="faq-item__answer">An accountant produces statutory accounts. A management report is built for the founder running the business — focused on KPIs, trends, variance, and recommendations rather than statutory format.</div>
+      </details>
+      <details class="faq-item">
+        <summary>How long until the first report is ready?</summary>
+        <div class="faq-item__answer">The first pack typically lands within five working days of month-end close, once the format is agreed. We design it with you in week one and ship the first version in month one.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Do you work with my existing accountant?</summary>
+        <div class="faq-item__answer">Yes. The report is built on the books your accountant maintains. We work upstream of them — adding commentary, analysis, and decision support — not replacing their work.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Can the report be tailored to my board or investors?</summary>
+        <div class="faq-item__answer">Yes. We can produce a board-ready version each quarter, or layer in investor-update sections. The core monthly pack is built for internal decision-making first.</div>
+      </details>
+      <details class="faq-item">
+        <summary>What KPIs are typically included?</summary>
+        <div class="faq-item__answer">Revenue, gross margin, EBITDA, runway, plus 2-3 business-specific operating metrics — defined together in week one based on what actually moves your business.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Is there a minimum commitment?</summary>
+        <div class="faq-item__answer">No. Monthly rolling — the engagement runs month to month after the first pack. If the value stops being obvious, you stop.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Can the pack include investor-facing sections?</summary>
+        <div class="faq-item__answer">Yes. We can extend the monthly format with an investor-update layer — covering ARR / revenue, runway, key wins, risks, and asks. Many founder-led businesses send a version of the pack to investors each quarter without further prep.</div>
+      </details>
+      <details class="faq-item">
+        <summary>How is this different from a BI tool or dashboard?</summary>
+        <div class="faq-item__answer">Dashboards visualise data. Reports interpret it. The monthly management pack is a curated narrative — selected KPIs, plain-English commentary, recommendations — designed for the leadership team to read, discuss, and act on in 45 minutes. Dashboards are a complementary layer; reports drive decisions.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Can we change the KPIs over time?</summary>
+        <div class="faq-item__answer">Yes — and we recommend you do. The first three months use the KPIs agreed in week one, then we review them quarterly. As the business evolves, the metrics that matter most evolve with it. The pack stays useful because it stays current.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final" id="review">
+  <div class="shell">
+    <h2>Ready for a monthly pack that decides things?</h2>
+    <p class="final__sub">Book a 30-minute finance review. We'll look at how your team currently reads the numbers and what a proper pack would change about the conversation.</p>
+    <a href="mailto:office@cunos.co.uk?subject=Management%20Report%20%E2%80%94%20Booking%20Request" class="btn btn--primary">Book a finance review →</a>
+    <p class="final__email">Or email directly: <a href="mailto:office@cunos.co.uk" data-verify>office@cunos.co.uk</a> · <a href="tel:+447520654301" data-verify>+44 7520 654 301</a></p>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <p>© Cunos Consulting · London, UK · <a href="/">cunos.co.uk</a></p>
+  <p style="margin-top:8px;font-size:11px">Senior Finance Support · Cashflow Forecast · Management Report</p>
+</footer>
+
+<script>
+(function(){
+  const KEY = 'cunos-management-report-draft-v1';
+  const main = document.querySelector('main');
+  const editBtn = document.getElementById('editToggle');
+  const copyBtn = document.getElementById('copyHtml');
+  const resetBtn = document.getElementById('resetEdits');
+  const hint = document.getElementById('editHint');
+
+  try{ const saved = localStorage.getItem(KEY); if(saved){ main.innerHTML = saved; hint.textContent = 'Loaded saved edits'; setTimeout(()=>hint.textContent='Click Edit to modify text',2500); } }catch(e){}
+
+  let editing = false;
+  function setEdit(on){
+    editing = on;
+    main.contentEditable = on ? 'true' : 'false';
+    document.body.classList.toggle('edit-mode', on);
+    editBtn.textContent = on ? '✓ Done editing' : '✏ Edit';
+    editBtn.classList.toggle('active', on);
+    hint.textContent = on ? 'Blue dots ● mark items to verify' : 'Edits saved · Click Copy HTML to export';
+  }
+  editBtn.addEventListener('click', ()=>setEdit(!editing));
+
+  let saveTimer;
+  main.addEventListener('input', ()=>{
+    if(!editing) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(()=>{ try{ localStorage.setItem(KEY, main.innerHTML); }catch(e){} }, 400);
+  });
+
+  copyBtn.addEventListener('click', async ()=>{
+    try{
+      const doc = document.documentElement.cloneNode(true);
+      const tb = doc.querySelector('#editToolbar'); if(tb) tb.remove();
+      doc.querySelectorAll('script:not([type="application/ld+json"])').forEach(s=>s.remove());
+      const html = '<!DOCTYPE html>\n' + doc.outerHTML;
+      await navigator.clipboard.writeText(html);
+      copyBtn.textContent = '✓ Copied'; setTimeout(()=>copyBtn.textContent='Copy HTML', 1800);
+    }catch(e){ copyBtn.textContent = 'Failed'; setTimeout(()=>copyBtn.textContent='Copy HTML', 1800); }
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    if(confirm('Discard all edits and reload the original draft?')){
+      try{ localStorage.removeItem(KEY); }catch(e){}
+      location.reload();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

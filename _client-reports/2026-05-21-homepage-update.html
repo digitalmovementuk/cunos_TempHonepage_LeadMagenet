@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Cunos homepage update — 21 May 2026</title>
+<style>
+  :root {
+    --bg: #f7f9fc;
+    --ink: #0b1220;
+    --muted: #5a6273;
+    --accent: #0071E3;
+    --rule: #e6ebf2;
+    --highlight: #fff;
+    --highlight-text: #0a0e1e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 56px 28px 80px; }
+  header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
+  .eyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  .date { font-size: 13px; color: var(--muted); }
+  h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin: 8px 0 24px; }
+  .lede { font-size: 17px; line-height: 1.55; color: var(--muted); margin: 0 0 36px; max-width: 580px; }
+  section { margin: 32px 0; }
+  h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.005em; margin: 28px 0 10px; color: var(--ink); }
+  ul { padding-left: 20px; margin: 0; }
+  li { font-size: 15.5px; line-height: 1.55; margin: 6px 0; color: var(--ink); }
+  li ul li { font-size: 14.5px; color: var(--muted); margin: 4px 0; }
+  .quote { font-style: italic; color: var(--muted); display: block; margin: 2px 0; }
+  .mark { background: var(--highlight); color: var(--highlight-text); padding: 0 4px; border-radius: 2px; box-shadow: 0 1px 0 rgba(10,16,32,0.08); }
+  .pending { margin-top: 48px; padding: 22px 26px; background: #fff; border: 1px solid var(--rule); border-radius: 14px; }
+  .pending h3 { font-size: 14px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: var(--accent); margin: 0 0 8px; }
+  .pending p { margin: 0; font-size: 15.5px; line-height: 1.55; color: var(--ink); }
+  footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--rule); font-size: 12.5px; color: var(--muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Update report</span>
+    <span class="date">21 May 2026</span>
+  </header>
+  <h1>Cunos homepage — what just shipped</h1>
+  <p class="lede">Summary of the changes made to the cunos.co.uk homepage in this round. One action needed from your side to take it live (bottom of page).</p>
+
+  <section>
+    <h2>Hero video</h2>
+    <ul>
+      <li>Plays continuously across the full opening section (hero + first scroll).</li>
+      <li>Trimmed to skip the dark fade-out tail — loop now stays bright the whole time.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Opening statement (below the hero)</h2>
+    <ul>
+      <li>New copy, three sentences:
+        <ul>
+          <li><span class="quote">"A practical alternative to in-house finance support."</span></li>
+          <li><span class="quote">"<span class="mark">Ensuring financial control and transparency.</span>"</span></li>
+          <li><span class="quote">"Without adding a full-time role to your team."</span></li>
+        </ul>
+      </li>
+      <li>Text holds centre-screen while you scroll.</li>
+      <li>Words appear one by one, in sync with the scroll.</li>
+      <li><span class="mark">Ensuring financial control and transparency</span> gets a hand-drawn-feel marker highlight — sweeps across word by word, white-on-black for emphasis.</li>
+      <li>Once a word is revealed it stays — no fade-out when you scroll past.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Section headings</h2>
+    <ul>
+      <li>All section H2s unified to the same large bold treatment ("Fractional CFO" scale).</li>
+      <li>"Where you stand" → "What's your situation?"</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Mobile</h2>
+    <ul>
+      <li>"What you get / Fractional CFO" section + 3 service cards now centre-aligned on mobile.</li>
+    </ul>
+  </section>
+
+  <div class="pending">
+    <h3>One step needed from you</h3>
+    <p>Detach <strong>cunos.co.uk</strong> and <strong>www.cunos.co.uk</strong> from the existing Vercel project (Settings → Domains → ⋯ → Remove). Once done, we re-attach on our side and the new version is live within ~2 minutes.</p>
+  </div>
+
+  <footer>
+    <span>Digital Movement · alex@digitalmovement.uk</span>
+    <span>cunos.co.uk · 21 May 2026</span>
+  </footer>
+</div>
+</body>
+</html>

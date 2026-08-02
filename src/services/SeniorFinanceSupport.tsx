@@ -2016,51 +2016,26 @@ export function FAQItem({
 /* ----------------------- STICKY CTA + PROGRESS ------------------------- */
 
 export function StickyCTA() {
-  const [visible, setVisible] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => {
-      const past = window.scrollY > window.innerHeight * 1.4
-      const review = document.getElementById('review')
-      const reviewInView = review
-        ? review.getBoundingClientRect().top < window.innerHeight - 100
-        : false
-      setVisible(past && !reviewInView)
-    }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
-    }
-  }, [])
-
   return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          initial={{ y: 60, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 60, opacity: 0 }}
-          transition={{ duration: 0.45, ease: EASE }}
-          className="pointer-events-none fixed inset-x-0 bottom-5 z-[55] flex justify-center px-4 sm:bottom-7 sm:px-6"
-        >
-          <a
-            href="#review"
-            className="pointer-events-auto group inline-flex items-center gap-3 rounded-pill border border-white/15 bg-[#0b1220]/85 px-5 py-3 text-[13.5px] font-medium text-white shadow-[0_18px_44px_-12px_rgba(8,24,52,0.55)] backdrop-blur-xl backdrop-saturate-150 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#5cb3ff]/40 hover:bg-[#0b1220]/95 sm:gap-4 sm:py-3.5 sm:text-[14.5px]"
-          >
-            <span className="inline-flex h-2 w-2 rounded-full bg-[#5cb3ff] shadow-[0_0_0_3px_rgba(92,179,255,0.25)]" />
-            Ready to talk?
-            <span className="hidden text-white/55 sm:inline">·</span>
-            <span className="inline-flex items-center gap-1.5 text-[#9fd0ff] transition-transform group-hover:translate-x-0.5">
-              Book a finance review
-              <ArrowRight size={14} />
-            </span>
-          </a>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <motion.div
+      initial={{ y: 60, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.45, ease: EASE }}
+      className="pointer-events-none fixed inset-x-0 bottom-5 z-[55] flex justify-center px-4 sm:bottom-7 sm:px-6"
+    >
+      <a
+        href="#review"
+        className="pointer-events-auto group inline-flex items-center gap-3 rounded-pill border border-white/15 bg-[#0b1220]/85 px-5 py-3 text-[13.5px] font-medium text-white shadow-[0_18px_44px_-12px_rgba(8,24,52,0.55)] backdrop-blur-xl backdrop-saturate-150 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#5cb3ff]/40 hover:bg-[#0b1220]/95 sm:gap-4 sm:py-3.5 sm:text-[14.5px]"
+      >
+        <span className="inline-flex h-2 w-2 rounded-full bg-[#5cb3ff] shadow-[0_0_0_3px_rgba(92,179,255,0.25)]" />
+        Ready to talk?
+        <span className="hidden text-white/55 sm:inline">·</span>
+        <span className="inline-flex items-center gap-1.5 text-[#9fd0ff] transition-transform group-hover:translate-x-0.5">
+          Book a finance review
+          <ArrowRight size={14} />
+        </span>
+      </a>
+    </motion.div>
   )
 }
 

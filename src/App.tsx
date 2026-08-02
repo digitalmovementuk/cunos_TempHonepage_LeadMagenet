@@ -32,7 +32,7 @@ export const CONTACT = {
   phoneHref: 'tel:+447520654301',
   whatsappHref:
     'https://wa.me/447520654301?text=Hi%20Cunos%2C%20I%27d%20like%20to%20discuss%20finance%20support.',
-  linkedinHref: 'https://www.linkedin.com/company/cunos-consulting',
+  linkedinHref: 'https://www.linkedin.com/in/entingcgma/',
   /* Form submissions route to this inbox via FormSubmit.co (no backend required). */
   formEndpoint: 'https://formsubmit.co/ajax/enting@cunos.co.uk',
 }

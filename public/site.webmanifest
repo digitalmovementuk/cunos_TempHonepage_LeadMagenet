@@ -1,0 +1,15 @@
+{
+  "name": "Cunos Consulting",
+  "short_name": "Cunos",
+  "description": "Senior finance support for founder-led businesses. London, UK.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#06122a",
+  "theme_color": "#06122a",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

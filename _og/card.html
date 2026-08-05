@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8" />
+<title>Cunos OG card renderer</title>
+<style>
+  @font-face { font-family: 'Inter'; font-weight: 300; font-style: normal; font-display: block;
+    src: url('../node_modules/@fontsource/inter/files/inter-latin-300-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 400; font-style: normal; font-display: block;
+    src: url('../node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 500; font-style: normal; font-display: block;
+    src: url('../node_modules/@fontsource/inter/files/inter-latin-500-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 600; font-style: normal; font-display: block;
+    src: url('../node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 700; font-style: normal; font-display: block;
+    src: url('../node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2') format('woff2'); }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; background: #050b16; }
+  body { font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+
+  .card { position: relative; width: 1200px; height: 630px; overflow: hidden; isolation: isolate; }
+
+  /* Background plate — a frame from the site's own footage */
+  .plate { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+  /* Left-to-right scrim so the copy stays legible, building stays visible on the right */
+  .scrim {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(97deg,
+        rgba(5,11,22,0.95) 0%,
+        rgba(5,11,22,0.90) 34%,
+        rgba(5,11,22,0.66) 56%,
+        rgba(5,11,22,0.30) 76%,
+        rgba(5,11,22,0.18) 100%),
+      linear-gradient(180deg, rgba(5,11,22,0.55) 0%, rgba(5,11,22,0) 26%),
+      linear-gradient(0deg,   rgba(5,11,22,0.60) 0%, rgba(5,11,22,0) 30%);
+  }
+
+  .inner {
+    position: absolute; inset: 0; z-index: 2;
+    padding: 56px 64px 52px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+
+  /* ---- top row ---- */
+  .top { display: flex; align-items: center; justify-content: space-between; }
+  .wordmark {
+    display: flex; align-items: center; gap: 14px;
+    font-size: 31px; font-weight: 600; letter-spacing: -0.022em; color: #fff;
+  }
+  .mark { width: 34px; height: 34px; flex: none; }
+  .place {
+    font-size: 14px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+  }
+
+  /* ---- main block ---- */
+  .kicker {
+    font-size: 18px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #7cbdff; margin-bottom: 18px;
+  }
+  h1 { color: #fff; letter-spacing: -0.032em; line-height: 1.045; margin-bottom: 22px; }
+  h1 .l1 { display: block; font-weight: 300; }
+  h1 .l2 { display: block; font-weight: 500; }
+  .sub {
+    font-size: 25px; line-height: 1.34; font-weight: 400;
+    color: rgba(255,255,255,0.74); max-width: 640px;
+    text-wrap: balance;
+  }
+
+  /* ---- bottom row ---- */
+  .bottom { display: flex; align-items: flex-end; justify-content: space-between; }
+  .url { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; color: #fff; }
+  .rule { height: 3px; width: 64px; background: #0071E3; margin-bottom: 16px; border-radius: 2px; }
+  .tag {
+    font-size: 15px; font-weight: 500; letter-spacing: 0.03em;
+    color: rgba(255,255,255,0.6);
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <video class="plate" id="plate" muted playsinline preload="auto"></video>
+    <img class="plate" id="plateImg" style="display:none" />
+    <div class="scrim"></div>
+
+    <div class="inner">
+      <div class="top">
+        <div class="wordmark">
+          <svg class="mark" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+            <circle cx="22" cy="22" r="15.5" stroke="#7cbdff" stroke-width="3.2" />
+            <path d="M13.5 22 L28 22" stroke="#7cbdff" stroke-width="3.2" stroke-linecap="round" />
+            <circle cx="28" cy="22" r="2.9" fill="#7cbdff" />
+          </svg>
+          <span>Cunos Consulting</span>
+        </div>
+        <div class="place" id="place">London, UK</div>
+      </div>
+
+      <div>
+        <div class="kicker" id="kicker"></div>
+        <h1 id="head"><span class="l1" id="l1"></span><span class="l2" id="l2"></span></h1>
+        <div class="sub" id="sub"></div>
+      </div>
+
+      <div class="bottom">
+        <div>
+          <div class="rule"></div>
+          <div class="url">cunos.co.uk</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const VARIANTS = {
+  default: {
+    video: '../public/media/hero-desktop.mp4', t: 3.2,
+    kicker: 'Senior finance support',
+    l1: 'Outsourced', l2: 'Finance Management', size: 74,
+    sub: 'Finance leadership, reporting, and cash visibility — made for founders.',
+    tag: 'Outsourced finance leadership'
+  },
+  'senior-finance-support': {
+    video: '../public/media/services/senior-finance-support.mp4', t: 2.4,
+    kicker: 'Senior finance support',
+    l1: 'A finance lead,', l2: 'without the full-time cost', size: 62,
+    sub: 'Outsourced finance leadership for founder-led UK businesses.',
+    tag: 'Retained monthly support'
+  },
+  'cashflow-forecast': {
+    video: '../public/media/services/cashflow-forecast.mp4', t: 2.4,
+    kicker: 'Cash visibility',
+    l1: '13-Week', l2: 'Cashflow Forecast', size: 74,
+    sub: 'Driver-based, scenario-tested, and refreshed every week.',
+    tag: 'Know your cash runway'
+  },
+  'management-report': {
+    // The service clip is US dollar bills — wrong currency for a UK consultancy,
+    // so this card uses a City of London frame from the hero footage instead.
+    video: '../public/media/hero-desktop.mp4', t: 21,
+    kicker: 'Monthly reporting',
+    l1: 'Monthly', l2: 'Management Reporting', size: 68,
+    sub: 'KPIs, variance commentary, and concrete next steps.',
+    tag: 'Numbers you can act on'
+  },
+};
+
+const params = new URLSearchParams(location.search);
+const key = params.get('key') || 'default';
+const v = VARIANTS[key];
+if (params.get('t')) v.t = parseFloat(params.get('t'));
+if (params.get('v')) v.video = '../public/media/' + params.get('v');
+
+document.getElementById('kicker').textContent = v.kicker;
+document.getElementById('l1').textContent = v.l1;
+document.getElementById('l2').textContent = v.l2;
+document.getElementById('sub').textContent = v.sub;
+document.getElementById('head').style.fontSize = v.size + 'px';
+
+// Seek the source footage to a chosen frame, then freeze it.
+const plate = document.getElementById('plate');
+plate.src = v.video;
+plate.addEventListener('loadeddata', () => { plate.currentTime = v.t; }, { once: true });
+plate.addEventListener('seeked', () => {
+  document.documentElement.setAttribute('data-ready', '1');
+}, { once: true });
+</script>
+</body>
+</html>

@@ -2425,6 +2425,24 @@ export function Footer() {
             <MapPin size={12} strokeWidth={1.8} className="text-[#86868b]" />
             London, United Kingdom
           </p>
+          <p className="inline-flex items-center justify-center gap-2">
+            <span className="uppercase tracking-[0.08em]">Powered by</span>
+            <a
+              href="https://digitalmovement.uk/"
+              target="_blank"
+              rel="noopener"
+              title="Website by Digital Movement"
+              className="inline-flex items-center leading-none opacity-80 transition-opacity hover:opacity-100"
+            >
+              <img
+                src="/brand/digital-movement-logo.svg"
+                alt="Digital Movement"
+                width={150}
+                height={32}
+                className="block h-[18px] w-auto"
+              />
+            </a>
+          </p>
         </div>
       </div>
     </footer>
